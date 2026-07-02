@@ -1,0 +1,181 @@
+@import "tailwindcss";
+
+:root {
+  --bg-primary: #0a0b0d;
+  --bg-secondary: #12141a;
+  --bg-card: #171a23;
+  --bg-card-hover: #1f2330;
+  
+  --border-color: #262c3a;
+  --border-color-glow: #e2b13c;
+  
+  --accent-gold: #e2b13c;
+  --accent-gold-glow: rgba(226, 177, 60, 0.25);
+  --accent-teal: #45a29e;
+  --accent-teal-glow: rgba(69, 162, 158, 0.25);
+  
+  --text-primary: #f5f6f8;
+  --text-secondary: #8e9bb0;
+  --text-muted: #536278;
+  
+  --threat-critical: #ff3344;
+  --threat-high: #ff8c00;
+  --threat-medium: #ffd700;
+  --threat-low: #00e676;
+  
+  --font-sans: 'Outfit', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  
+  --shadow-glow: 0 0 20px rgba(226, 177, 60, 0.15);
+  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-gold);
+}
+
+/* Base Layout Classes */
+.app-container {
+  display: flex;
+  min-height: 100vh;
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(226, 177, 60, 0.03) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(69, 162, 158, 0.03) 0%, transparent 40%);
+}
+
+/* Animations */
+@keyframes pulse-gold {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(226, 177, 60, 0.15);
+    border-color: var(--border-color);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(226, 177, 60, 0.35);
+    border-color: var(--accent-gold);
+  }
+}
+
+@keyframes terminal-cursor {
+  50% { opacity: 0; }
+}
+
+@keyframes scan-line {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Utilities */
+.glow-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 24px;
+  transition: var(--transition-smooth);
+}
+.glow-card:hover {
+  border-color: rgba(226, 177, 60, 0.4);
+  box-shadow: var(--shadow-glow);
+}
+
+.mono {
+  font-family: var(--font-mono);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-family: var(--font-mono);
+}
+.badge-critical { background: rgba(255, 51, 68, 0.15); color: var(--threat-critical); border: 1px solid rgba(255, 51, 68, 0.3); }
+.badge-high { background: rgba(255, 140, 0, 0.15); color: var(--threat-high); border: 1px solid rgba(255, 140, 0, 0.3); }
+.badge-medium { background: rgba(255, 215, 0, 0.15); color: var(--threat-medium); border: 1px solid rgba(255, 215, 0, 0.3); }
+.badge-low { background: rgba(0, 230, 118, 0.15); color: var(--threat-low); border: 1px solid rgba(0, 230, 118, 0.3); }
+
+/* Buttons */
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent-gold), #b88b1d);
+  color: #000;
+  font-weight: 600;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: var(--transition-smooth);
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(226, 177, 60, 0.4);
+}
+.btn-primary:disabled {
+  background: var(--text-muted);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: var(--transition-smooth);
+}
+.btn-secondary:hover {
+  border-color: var(--accent-gold);
+  background: rgba(226, 177, 60, 0.05);
+}
+
+.fade-in {
+  animation: fade-in 0.4s ease-out forwards;
+}

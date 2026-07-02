@@ -1,0 +1,69 @@
+# ==============================================================================
+# SANSEC AI — ROOT GITIGNORE
+# ==============================================================================
+
+# --- ENVIRONMENT & SECRETS ---
+.env
+.env.*
+backend/.env
+frontend/.env
+*.pem
+*.key
+*.crt
+
+# --- PYTHON BUILD & RUNTIME ---
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.venv/
+venv/
+env/
+
+# --- NODE DEPENDENCIES & LOGS ---
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-lock.yaml
+
+# --- BUILD OUTPUTS & COVERAGES ---
+dist/
+build/
+coverage/
+
+# --- GENERAL SYSTEM LOGS ---
+logs/
+*.log
+
+# --- IDE CONFIGURATIONS ---
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- OPERATING SYSTEM ARTIFACTS ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- STORAGE DIRECTORIES ---
+storage/
+06_SRC/backend/storage/
+uploads/
+quarantine/
+temp/
+exports/
+reports/
+06_SRC/backend/uploads/
+06_SRC/backend/quarantine/
+06_SRC/backend/reports/
+
+# --- DATABASE PERSISTENCE LOGS ---
+*.sqlite3
+
+# --- CONTAINERIZATION LIFECYCLE ---
+*.pid

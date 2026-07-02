@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: 06_SRC/backend/Dockerfile
+    image: sansec-backend:latest
+    container_name: sansec-backend-service
+    ports:
+      - "8000:8000"
+    environment:
+      - SANSEC_JWT_SECRET=super_secure_sansec_jwt_auth_key_2026_generator_passphrase
+      - SANSEC_VIRUSTOTAL_API_KEY=${VIRUSTOTAL_API_KEY:-}
+      - SANSEC_OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - SANSEC_GEMINI_API_KEY=${GEMINI_API_KEY:-}
+    restart: always
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    image: sansec-frontend:latest
+    container_name: sansec-frontend-service
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: always

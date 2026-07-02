@@ -1,0 +1,1144 @@
+openapi: 3.1.0
+info:
+  title: SANSEC AI - API Contract
+  version: 1.0.0
+  description: |
+    Production-ready API contract for SANSEC AI — AI-Powered Malware Analysis Workspace.
+    This contract serves as the Single Source of Truth for communication between the React Frontend and FastAPI Backend.
+servers:
+  - url: http://localhost:8000
+    description: Development Local API Gateway
+paths:
+  /api/auth/register:
+    post:
+      summary: User Registration
+      description: Register a new analyst account on the workspace.
+      operationId: registerUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegisterRequest'
+      responses:
+        '201':
+          description: User registered successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/auth/login:
+    post:
+      summary: User Authentication
+      description: Handshake authenticate credentials to retrieve JWT access and refresh tokens.
+      operationId: loginUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLoginRequest'
+      responses:
+        '200':
+          description: Authentication successful.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/auth/logout:
+    post:
+      summary: User Sign Out
+      description: Invalidate JWT tokens and terminate analyst terminal session.
+      operationId: logoutUser
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Logout successful.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Session terminated successfully."
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+
+  /api/auth/refresh:
+    post:
+      summary: Refresh Access Token
+      description: Get a new JWT access token using a valid refresh token.
+      operationId: refreshAuthToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refresh_token
+              properties:
+                refresh_token:
+                  type: string
+                  example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.refresh..."
+      responses:
+        '200':
+          description: Token refreshed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+
+  /api/auth/me:
+    get:
+      summary: Get Current Profile
+      description: Retrieve context information of the authenticated user.
+      operationId: getCurrentUser
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Profile retrieved.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+
+  /api/files/upload:
+    post:
+      summary: Upload Sample for Dissection
+      description: Streams a binary target sample into the static disassembly pipeline.
+      operationId: uploadSampleFile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Binary executable, DLL, PDF, script, or archive file.
+      responses:
+        '202':
+          description: Upload accepted, static parsing pipeline scheduled.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalysisSubmissionResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/upload:
+    post:
+      summary: Sync Analysis Upload (Legacy/Direct)
+      description: Direct upload endpoint that performs synchronous analysis for development ease.
+      operationId: uploadFileSync
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Sync analysis successfully compiled.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalysisReport'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/analysis/{id}/status:
+    get:
+      summary: Retrieve Pipeline Status
+      description: Query the status of an ongoing backend dissection task.
+      operationId: getAnalysisStatus
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: SHA256 file hash identifier of the sample.
+      responses:
+        '200':
+          description: Task status retrieved.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalysisStatusResponse'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /api/analysis/{id}:
+    get:
+      summary: Get Analysis Results
+      description: Retrieve the detailed static disassembly, section metadata, and matched signatures.
+      operationId: getAnalysisResults
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: SHA256 hash.
+      responses:
+        '200':
+          description: Telemetry report retrieved.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalysisReport'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /api/history:
+    get:
+      summary: Search History Logs
+      description: Browse or filter the archive of parsed threat samples.
+      operationId: getHistoryLogs
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: q
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Search term (filename or hash).
+        - name: threat_level
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [Low, Medium, High, Critical, ALL]
+          description: Filter by severity class.
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+          description: Current page.
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+          description: Number of records.
+      responses:
+        '200':
+          description: Query records list.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HistoryItem'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+
+  /api/ai/explain:
+    post:
+      summary: Generate AI Explanation
+      description: Contextualizes disassembly metrics and section alerts into an explainable report.
+      operationId: explainReportWithAI
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - file_hash
+              properties:
+                file_hash:
+                  type: string
+                  example: "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca545b"
+      responses:
+        '200':
+          description: AI explanation generated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  file_hash:
+                    type: string
+                  explanation:
+                    type: string
+                    description: Markdown-formatted diagnostic reasoning log.
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /api/ai/chat:
+    post:
+      summary: Query AI Threat Assistant
+      description: Open-ended conversational query matching telemetry indicators with tactical guides.
+      operationId: askAITranslator
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AIChatRequest'
+      responses:
+        '200':
+          description: Conversation response retrieved.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AIChatResponse'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /api/reports:
+    get:
+      summary: Retrieve Reports Archive
+      description: List all compiled documentation reports.
+      operationId: listReports
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Reports catalog.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReportMetadata'
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+
+  /api/reports/{id}:
+    get:
+      summary: Get Report Document
+      description: Fetch specific metadata and markdown layout of a document.
+      operationId: getReportDocument
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Report returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportMetadata'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /api/reports/{id}/export:
+    get:
+      summary: Export Report Document
+      description: Download the report formatted as PDF, JSON, or CSV.
+      operationId: exportReportDocument
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: format
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [pdf, json, csv]
+          description: Target export format.
+      responses:
+        '200':
+          description: File downloaded.
+          headers:
+            Content-Disposition:
+              schema:
+                type: string
+                example: "attachment; filename=report.pdf"
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            application/json:
+              schema:
+                type: object
+            text/csv:
+              schema:
+                type: string
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /api/dashboard/stats:
+    get:
+      summary: Retrieve Dashboard Analytics Counters
+      description: Summary metrics for active dashboard card displays.
+      operationId: getDashboardStats
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Dashboard metrics.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_scans:
+                    type: integer
+                    example: 124
+                  threats_detected:
+                    type: integer
+                    example: 37
+                  avg_risk_score:
+                    type: integer
+                    example: 58
+                  pe_binaries_scanned:
+                    type: integer
+                    example: 79
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+
+  /api/analytics/trends:
+    get:
+      summary: Fetch Threat Trend Analytics
+      description: Distribution metrics over time for donut charts and histograms.
+      operationId: getAnalyticsTrends
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: filter_type
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [ALL, PE, PDF, OFFICE, APK]
+            default: ALL
+      responses:
+        '200':
+          description: Distribution counts.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  severity_distribution:
+                    type: object
+                    properties:
+                      critical:
+                        type: integer
+                        example: 12
+                      high:
+                        type: integer
+                        example: 25
+                      medium:
+                        type: integer
+                        example: 48
+                      low:
+                        type: integer
+                        example: 39
+                  historical_scores:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        filename:
+                          type: string
+                        risk_score:
+                          type: integer
+                        timestamp:
+                          type: string
+        '401':
+          $ref: '#/components/responses/AuthenticationError'
+
+  /api/notifications:
+    get:
+      summary: Get Engine Notifications
+      description: Pull list of recent system notifications and threat feeds.
+      operationId: getNotifications
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Alerts array.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    message:
+                      type: string
+                    severity:
+                      type: string
+                      enum: [info, warning, critical]
+                    timestamp:
+                      type: string
+
+  /api/settings:
+    get:
+      summary: Get Workspace Settings
+      description: Returns configuration attributes for parser thresholds and active AI model.
+      operationId: getSettings
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Settings config.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspaceSettings'
+    put:
+      summary: Save Workspace Settings
+      description: Update workspace settings attributes.
+      operationId: updateSettings
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkspaceSettings'
+      responses:
+        '200':
+          description: Settings updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspaceSettings'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+
+  /api/admin/users:
+    get:
+      summary: List Workspace Users (Admin only)
+      description: Fetch administrative user table.
+      operationId: adminListUsers
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Users retrieved.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserResponse'
+        '403':
+          description: Forbidden - Administrative permissions required.
+
+  /api/health:
+    get:
+      summary: Platform Health check
+      description: Evaluates status variables of database gateways and threat libraries.
+      operationId: checkHealthStatus
+      responses:
+        '200':
+          description: System healthy.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "healthy"
+                  timestamp:
+                    type: string
+                    example: "2026-07-02T13:06:00Z"
+
+  /api/version:
+    get:
+      summary: Get Workspace Version
+      description: Returns active software releases and parser signatures update timestamps.
+      operationId: getEngineVersion
+      responses:
+        '200':
+          description: Version metadata.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  version:
+                    type: string
+                    example: "1.0.4"
+                  signatures_timestamp:
+                    type: string
+                    example: "2026-07-01T22:00:00Z"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  responses:
+    ValidationError:
+      description: The request request body parameters failed client validations.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorModel'
+    AuthenticationError:
+      description: JWT token is invalid, expired, or absent.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorModel'
+    NotFoundError:
+      description: The requested resource hash does not exist.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorModel'
+    RateLimitError:
+      description: API limit bounds reached.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorModel'
+    InternalServerError:
+      description: Disassembly engine or database context exception.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorModel'
+
+  schemas:
+    UserRegisterRequest:
+      type: object
+      required:
+        - username
+        - email
+        - password
+      properties:
+        username:
+          type: string
+          example: "analyst_jason"
+        email:
+          type: string
+          format: email
+          example: "jason@sansec.ai"
+        password:
+          type: string
+          minLength: 8
+          example: "cryptosafe2026"
+
+    UserLoginRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          example: "analyst"
+        password:
+          type: string
+          example: "sansec2026"
+
+    TokenResponse:
+      type: object
+      required:
+        - access_token
+        - refresh_token
+        - token_type
+      properties:
+        access_token:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        refresh_token:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.ref..."
+        token_type:
+          type: string
+          example: "bearer"
+
+    UserResponse:
+      type: object
+      required:
+        - id
+        - username
+        - email
+        - role
+        - created_at
+      properties:
+        id:
+          type: string
+          example: "usr_91238a0"
+        username:
+          type: string
+          example: "analyst"
+        email:
+          type: string
+          example: "analyst@sansec.ai"
+        role:
+          type: string
+          enum: [Admin, Analyst, Guest]
+          example: "Analyst"
+        created_at:
+          type: string
+          example: "2026-06-15T08:00:00Z"
+
+    AnalysisSubmissionResponse:
+      type: object
+      required:
+        - task_id
+        - status
+        - message
+      properties:
+        task_id:
+          type: string
+          example: "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca545b"
+        status:
+          type: string
+          enum: [Pending, Processing, Completed, Failed]
+          example: "Processing"
+        message:
+          type: string
+          example: "Static parsing task spawned successfully."
+
+    AnalysisStatusResponse:
+      type: object
+      required:
+        - task_id
+        - status
+        - progress
+      properties:
+        task_id:
+          type: string
+          example: "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca545b"
+        status:
+          type: string
+          enum: [Pending, Processing, Completed, Failed]
+          example: "Processing"
+        progress:
+          type: integer
+          example: 65
+        error_details:
+          type: string
+          nullable: true
+          example: null
+
+    AnalysisReport:
+      type: object
+      required:
+        - id
+        - filename
+        - size
+        - hashes
+        - file_type
+        - entropy
+        - strings
+        - pe_info
+        - iocs
+        - signatures
+        - risk_score
+        - threat_level
+        - mitre_mappings
+        - timestamp
+      properties:
+        id:
+          type: string
+          description: SHA256 checksum used as primary identifier.
+          example: "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca545b"
+        filename:
+          type: string
+          example: "wannacry_payload.exe"
+        size:
+          type: integer
+          example: 3514022
+        hashes:
+          type: object
+          required:
+            - md5
+            - sha1
+            - sha256
+          properties:
+            md5:
+              type: string
+              example: "84c82835a5d21bb375c3c3372f7bc93a"
+            sha1:
+              type: string
+              example: "4cc2835a5d21bb375c3c3372f7bc93a8d1a1bb1"
+            sha256:
+              type: string
+              example: "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca545b"
+        file_type:
+          type: string
+          example: "EXE (Windows Portable Executable)"
+        entropy:
+          type: number
+          format: float
+          example: 7.42
+        strings:
+          type: array
+          items:
+            type: string
+          example: ["VirtualAllocEx", "KERNEL32.dll", "http://malicious-c2.net/connect", "ShellExecuteA"]
+        pe_info:
+          $ref: '#/components/schemas/PEInfo'
+        iocs:
+          $ref: '#/components/schemas/IOCs'
+        signatures:
+          type: array
+          items:
+            $ref: '#/components/schemas/SignatureMatch'
+        risk_score:
+          type: integer
+          example: 85
+        threat_level:
+          type: string
+          enum: [Low, Medium, High, Critical]
+          example: "Critical"
+        mitre_mappings:
+          type: array
+          items:
+            $ref: '#/components/schemas/MitreMapping'
+        timestamp:
+          type: string
+          example: "2026-07-02T13:00:00Z"
+
+    PEInfo:
+      type: object
+      required:
+        - is_pe
+      properties:
+        is_pe:
+          type: boolean
+          example: true
+        machine:
+          type: string
+          example: "x64 (64-bit)"
+        entry_point:
+          type: string
+          example: "0x140001020"
+        sections:
+          type: array
+          items:
+            type: object
+            required:
+              - name
+              - virtual_size
+              - raw_size
+              - entropy
+              - writable
+              - executable
+              - readable
+            properties:
+              name:
+                type: string
+                example: ".text"
+              virtual_size:
+                type: integer
+                example: 40960
+              raw_size:
+                type: integer
+                example: 38912
+              entropy:
+                type: number
+                example: 6.25
+              writable:
+                type: boolean
+                example: false
+              executable:
+                type: boolean
+                example: true
+              readable:
+                type: boolean
+                example: true
+        imports:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+          example:
+            KERNEL32.dll: ["VirtualAllocEx", "WriteProcessMemory"]
+            USER32.dll: ["MessageBoxA"]
+        exports:
+          type: array
+          items:
+            type: string
+          example: []
+        suspicious_sections:
+          type: array
+          items:
+            type: string
+          example: [".rsrc virtual size is much larger than raw size"]
+        high_entropy_sections:
+          type: array
+          items:
+            type: string
+          example: [".data has high entropy (7.6)"]
+        suspicious_apis:
+          type: array
+          items:
+            type: object
+            required:
+              - api
+              - category
+              - dll
+            properties:
+              api:
+                type: string
+                example: "VirtualAllocEx"
+              category:
+                type: string
+                example: "Process Injection"
+              dll:
+                type: string
+                example: "KERNEL32.dll"
+
+    IOCs:
+      type: object
+      required:
+        - ips
+        - urls
+        - emails
+        - domains
+      properties:
+        ips:
+          type: array
+          items:
+            type: string
+          example: ["185.220.101.4"]
+        urls:
+          type: array
+          items:
+            type: string
+          example: ["http://malicious-c2.net/connect"]
+        emails:
+          type: array
+          items:
+            type: string
+          example: ["attacker@mail.org"]
+        domains:
+          type: array
+          items:
+            type: string
+          example: ["malicious-c2.net"]
+
+    SignatureMatch:
+      type: object
+      required:
+        - name
+        - severity
+        - description
+      properties:
+        name:
+          type: string
+          example: "Process Injection API Sequence"
+        severity:
+          type: string
+          enum: [Low, Medium, High]
+          example: "High"
+        description:
+          type: string
+          example: "File imports VirtualAllocEx and WriteProcessMemory, indicative of remote code execution."
+
+    MitreMapping:
+      type: object
+      required:
+        - id
+        - technique
+        - tactic
+      properties:
+        id:
+          type: string
+          example: "T1055"
+        technique:
+          type: string
+          example: "Process Injection"
+        tactic:
+          type: string
+          example: "Privilege Escalation / Defense Evasion"
+
+    HistoryItem:
+      type: object
+      required:
+        - id
+        - filename
+        - size
+        - risk_score
+        - threat_level
+        - file_type
+        - timestamp
+      properties:
+        id:
+          type: string
+          example: "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca545b"
+        filename:
+          type: string
+          example: "wannacry_payload.exe"
+        size:
+          type: integer
+          example: 3514022
+        risk_score:
+          type: integer
+          example: 85
+        threat_level:
+          type: string
+          example: "Critical"
+        file_type:
+          type: string
+          example: "EXE (Windows Portable Executable)"
+        timestamp:
+          type: string
+          example: "2026-07-02T13:00:00Z"
+
+    AIChatRequest:
+      type: object
+      required:
+        - file_hash
+        - message
+      properties:
+        file_hash:
+          type: string
+          example: "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca545b"
+        message:
+          type: string
+          example: "Explain what T1055 means and what suspicious APIs this file imports."
+
+    AIChatResponse:
+      type: object
+      required:
+        - reply
+        - timestamp
+      properties:
+        reply:
+          type: string
+          example: "This binary maps to T1055 (Process Injection). It imports VirtualAllocEx, which is commonly used to allocate memory space in a remote thread."
+        timestamp:
+          type: string
+          example: "2026-07-02T13:07:00Z"
+
+    ReportMetadata:
+      type: object
+      required:
+        - id
+        - filename
+        - created_at
+        - created_by
+      properties:
+        id:
+          type: string
+          example: "rep_9a12b8"
+        filename:
+          type: string
+          example: "SANSEC_REPORT_wannacry.pdf"
+        created_at:
+          type: string
+          example: "2026-07-02T13:00:00Z"
+        created_by:
+          type: string
+          example: "analyst"
+
+    WorkspaceSettings:
+      type: object
+      required:
+        - active_ai_model
+        - max_file_size_mb
+        - automatic_virustotal_lookup
+      properties:
+        active_ai_model:
+          type: string
+          example: "gemini-1.5-pro"
+        max_file_size_mb:
+          type: integer
+          example: 50
+        automatic_virustotal_lookup:
+          type: boolean
+          example: true
+
+    ErrorModel:
+      type: object
+      required:
+        - status_code
+        - error
+        - message
+      properties:
+        status_code:
+          type: integer
+          example: 401
+        error:
+          type: string
+          example: "Unauthorized"
+        message:
+          type: string
+          example: "Cryptographic token handshake failed or expired."

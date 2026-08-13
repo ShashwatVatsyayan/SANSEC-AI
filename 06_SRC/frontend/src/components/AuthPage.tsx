@@ -253,6 +253,29 @@ export const AuthPage: React.FC = () => {
               onSubmit={handleLoginSubmit}
               className="login-form"
             >
+              {/* Admin Portal Credentials Badge */}
+              <div className="w-full mb-3 p-2.5 rounded-lg bg-red-500/10 border border-red-500/30 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck size={16} className="text-red-400" />
+                  <div className="text-left">
+                    <span className="text-xs font-bold text-white block">Admin Portal Credentials</span>
+                    <span className="text-[10px] font-mono text-muted block">admin@sansec.ai • admin</span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUsername("admin@sansec.ai");
+                    setPassword("admin");
+                    setSuccessMsg("Admin credentials auto-filled: admin@sansec.ai");
+                    setTimeout(() => setSuccessMsg(""), 3000);
+                  }}
+                  className="py-1 px-2.5 rounded bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-300 text-xs font-bold transition-all cursor-pointer"
+                >
+                  ⚡ Fill Admin
+                </button>
+              </div>
+
               {savedCreds?.username && (
                 <button
                   type="button"

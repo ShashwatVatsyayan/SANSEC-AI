@@ -526,88 +526,58 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
         onChange={handleAvatarUpload}
       />
 
-      {/* Sidebar Navigation */}
-      <aside className={`sidebar ${isSidebarCollapsed ? "collapsed" : ""} ${isMobileMenuOpen ? "mobile-open" : ""}`}>
-        <div className="logo-section flex items-center justify-between">
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => { setActiveTab("dashboard"); setSelectedReport(null); }}>
-            <Shield className="logo-shield" style={{ color: "var(--accent-gold)" }} />
-            {!isSidebarCollapsed && (
-              <div>
-                <h1 className="logo-title">SANSEC <span className="gold-text">AI</span></h1>
-                <span className="logo-subtitle">OPERATIONS</span>
-              </div>
-            )}
-          </div>
+      {/* Compact Icon Sidebar Navigation */}
+      <aside className={`sidebar compact-icon-sidebar ${isMobileMenuOpen ? "mobile-open" : ""}`}>
+        <nav className="nav-menu flex flex-col items-center gap-4 py-4 w-full">
           <button 
-            onClick={toggleSidebar} 
-            className="sidebar-collapse-icon-btn hidden md:flex" 
-            title={isSidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
-          >
-            {isSidebarCollapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
-          </button>
-        </div>
-
-        <nav className="nav-menu">
-          <button 
-            className={`nav-item ${activeTab === "dashboard" ? "active" : ""}`}
+            className={`nav-item icon-only-nav ${activeTab === "dashboard" ? "active" : ""}`}
             onClick={() => { setActiveTab("dashboard"); setSelectedReport(null); setIsMobileMenuOpen(false); }}
             title="Dashboard Overview"
           >
-            <TrendingUp size={18} />
-            {!isSidebarCollapsed && <span className="nav-item-label">Dashboard Overview</span>}
+            <TrendingUp size={20} />
           </button>
           <button 
-            className={`nav-item ${activeTab === "scanner" ? "active" : ""}`}
+            className={`nav-item icon-only-nav ${activeTab === "scanner" ? "active" : ""}`}
             onClick={() => { setActiveTab("scanner"); setIsMobileMenuOpen(false); }}
             title="Heuristic Scanner"
           >
-            <Cpu size={18} />
-            {!isSidebarCollapsed && <span className="nav-item-label">Heuristic Scanner</span>}
+            <Cpu size={20} />
           </button>
           <button 
-            className={`nav-item ${activeTab === "analytics" ? "active" : ""}`}
+            className={`nav-item icon-only-nav ${activeTab === "analytics" ? "active" : ""}`}
             onClick={() => { setActiveTab("analytics"); setIsMobileMenuOpen(false); }}
             title="Threat Analytics"
           >
-            <FileCode size={18} />
-            {!isSidebarCollapsed && <span className="nav-item-label">Threat Analytics</span>}
+            <FileCode size={20} />
           </button>
           <button 
-            className={`nav-item ${activeTab === "history" ? "active" : ""}`}
+            className={`nav-item icon-only-nav ${activeTab === "history" ? "active" : ""}`}
             onClick={() => { setActiveTab("history"); setIsMobileMenuOpen(false); }}
             title={`Scan Records (${history.length})`}
           >
-            <HistIcon size={18} />
-            {!isSidebarCollapsed && <span className="nav-item-label">Scan Records ({history.length})</span>}
+            <HistIcon size={20} />
           </button>
           <button 
-            className={`nav-item ${activeTab === "settings" ? "active" : ""}`}
+            className={`nav-item icon-only-nav ${activeTab === "settings" ? "active" : ""}`}
             onClick={() => { setActiveTab("settings"); setIsMobileMenuOpen(false); }}
             title="System Settings"
           >
-            <Settings size={18} />
-            {!isSidebarCollapsed && <span className="nav-item-label">System Settings</span>}
+            <Settings size={20} />
           </button>
           {currentUser?.role === "Admin" && (
             <button 
-              className={`nav-item ${activeTab === "admin" ? "active" : ""}`}
+              className={`nav-item icon-only-nav ${activeTab === "admin" ? "active" : ""}`}
               onClick={() => { setActiveTab("admin"); setIsMobileMenuOpen(false); }}
               title="Admin Users"
             >
-              <ShieldCheck size={18} />
-              {!isSidebarCollapsed && <span className="nav-item-label">Admin Users</span>}
+              <ShieldCheck size={20} />
             </button>
           )}
         </nav>
 
-        <div className="sidebar-footer">
-          <div className="status-indicator">
-            <span className="status-dot online"></span>
-            <span>GATEWAY ONLINE</span>
-          </div>
-          <button onClick={handleLogout} className="btn-logout" title="Terminal Logout">
-            <LogOut size={14} />
-            {!isSidebarCollapsed && <span className="sidebar-footer-text">Sign Out</span>}
+        <div className="sidebar-footer flex flex-col items-center mt-auto pb-4">
+          <button onClick={handleLogout} className="nav-item icon-only-nav text-red/80 hover:text-red hover:bg-red/10" title="Sign Out Account">
+            <LogOut size={18} />
           </button>
         </div>
       </aside>
@@ -616,21 +586,28 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
       <main className="workspace-main">
         {/* Top Header Bar */}
         <header className="top-header-bar">
-          <div className="flex items-center gap-3">
-            {/* Mobile Drawer Button */}
-            <button 
-              className="md:hidden sidebar-toggle-btn cursor-pointer"
-              onClick={() => setIsMobileMenuOpen(prev => !prev)}
-              title="Toggle Mobile Menu"
-            >
-              {isMobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
-            </button>
-            <div className="flex items-center gap-2">
-              <Shield size={16} className="text-gold" />
-              <span className="text-xs font-bold uppercase tracking-wider text-secondary">
-                SANSEC AI / <span className="text-primary font-mono">{activeTab}</span>
-              </span>
+          <div className="flex items-center gap-4">
+            {/* Separate SANSEC AI Logo */}
+            <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => { setActiveTab("dashboard"); setSelectedReport(null); }}>
+              <Shield className="w-7 h-7 text-gold shadow-glow" />
+              <div className="flex flex-col">
+                <span className="text-base font-extrabold tracking-wider leading-tight text-white">SANSEC <span className="gold-text">AI</span></span>
+                <span className="text-[9px] font-mono tracking-widest text-muted uppercase">Malware Analysis</span>
+              </div>
             </div>
+
+            <div className="h-6 w-[1px] bg-white/15 hidden sm:block"></div>
+
+            {/* Clean View Title Only */}
+            <h2 className="text-sm font-bold tracking-wide text-primary capitalize">
+              {activeTab === "dashboard" && "Dashboard"}
+              {activeTab === "scanner" && "Scanner"}
+              {activeTab === "analytics" && "Analytics"}
+              {activeTab === "history" && "Scan Records"}
+              {activeTab === "settings" && "Settings"}
+              {activeTab === "admin" && "Admin Users"}
+              {activeTab === "profile" && "Analyst Profile"}
+            </h2>
           </div>
 
           <div className="flex items-center gap-4 relative">

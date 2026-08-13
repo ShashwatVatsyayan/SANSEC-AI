@@ -236,7 +236,7 @@ export const AuthPage: React.FC = () => {
         <div className="login-logo-header">
           <Shield className="login-shield-icon" size={48} />
           <h2>SANSEC <span className="gold-text">AI</span></h2>
-          <p className="login-subtitle">SECURE GATEWAY MODULE</p>
+          <p className="login-subtitle">SECURE MALWARE ANALYSIS</p>
         </div>
 
         {errorMsg && (
@@ -331,7 +331,7 @@ export const AuthPage: React.FC = () => {
               </button>
 
               <div className="oauth-separator">
-                <span>OR SIGN IN WITH</span>
+                  <span>OR CONTINUE WITH</span>
               </div>
 
               <button 
@@ -368,7 +368,7 @@ export const AuthPage: React.FC = () => {
               className="login-form"
             >
               <div className="form-group">
-                <label>Username Identity</label>
+                <label>Username</label>
                 <div className="input-wrapper">
                   <UserIcon className="input-icon" size={16} />
                   <input 
@@ -382,7 +382,7 @@ export const AuthPage: React.FC = () => {
               </div>
 
               <div className="form-group">
-                <label>Email Scope</label>
+                <label>Email address</label>
                 <div className="input-wrapper">
                   <Mail className="input-icon" size={16} />
                   <input 
@@ -396,7 +396,7 @@ export const AuthPage: React.FC = () => {
               </div>
 
               <div className="form-group">
-                <label>Password Token (min 8 chars)</label>
+                <label>Password (at least 8 characters)</label>
                 <div className="input-wrapper">
                   <Lock className="input-icon" size={16} />
                   <input 
@@ -410,7 +410,7 @@ export const AuthPage: React.FC = () => {
               </div>
 
               <div className="form-group">
-                <label>Confirm Password Token</label>
+                <label>Confirm password</label>
                 <div className="input-wrapper">
                   <Lock className="input-icon" size={16} />
                   <input 
@@ -500,7 +500,7 @@ export const AuthPage: React.FC = () => {
               className="login-form"
             >
               <div className="form-group">
-                <label>Registered Email Scope</label>
+                <label>Email address</label>
                 <div className="input-wrapper">
                   <Mail className="input-icon" size={16} />
                   <input 
@@ -530,7 +530,7 @@ export const AuthPage: React.FC = () => {
         </AnimatePresence>
 
         <div className="login-disclaimer text-center mt-6">
-          <span>CONSOLE COMMUNICATION IS ENCRYPTED VIA CLIENT JWT HANDSHAKE.</span>
+          <span>Your session is protected with secure authentication.</span>
         </div>
       </motion.div>
 

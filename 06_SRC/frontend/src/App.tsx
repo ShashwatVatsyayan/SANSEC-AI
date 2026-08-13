@@ -95,6 +95,7 @@ function App() {
   const [isScanning, setIsScanning] = useState<boolean>(false);
   const [scanProgress, setScanProgress] = useState<number>(0);
   const [scanLogs, setScanLogs] = useState<string[]>([]);
+  const [scanError, setScanError] = useState<string>("");
   
   // Reports and AI state
   const [aiExplanation, setAiExplanation] = useState<string>("");
@@ -272,12 +273,14 @@ function App() {
     setIsDragging(false);
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       setFile(e.dataTransfer.files[0]);
+      setScanError("");
     }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setFile(e.target.files[0]);
+      setScanError("");
     }
   };
 
@@ -287,6 +290,7 @@ function App() {
 
   const startScan = async (selectedFile: File) => {
     if (!selectedFile) return;
+    setScanError("");
     
     // File Size Validation
     const maxSizeBytes = workspaceSettings.max_file_size_mb * 1024 * 1024;
@@ -297,6 +301,7 @@ function App() {
         `[!] Adjust max file size threshold inside Workspace Settings.`
       ]);
       setScanProgress(0);
+      setScanError(`This file is larger than the ${workspaceSettings.max_file_size_mb} MB upload limit.`);
       return;
     }
 
@@ -334,7 +339,12 @@ function App() {
               resolve({ task_id: xhr.responseText, status: "Processing" });
             }
           } else {
-            reject(new Error(`Upload status ${xhr.status}`));
+            let message = `The server rejected the upload (HTTP ${xhr.status}).`;
+            try {
+              const payload = JSON.parse(xhr.responseText);
+              message = payload.message || payload.detail || message;
+            } catch {}
+            reject(new Error(message));
           }
         });
 
@@ -359,24 +369,8 @@ function App() {
         setScanProgress(40);
         results = await api.analysis.getResults(uploadResult.task_id);
       } catch (uploadErr) {
-        console.warn("Backend upload API fallback to client static engine parser:", uploadErr);
-        setScanLogs(prev => [
-          ...prev,
-          `[+] Local static engine fallback active for payload parsing...`,
-          `[*] Spawning static parser thread (pefile & Shannon entropy analyzers)...`
-        ]);
-        setScanProgress(40);
-        
-        const fileExt = selectedFile.name.split('.').pop()?.toUpperCase() || "BIN";
-        const baseReport = await api.analysis.getResults("01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca545b");
-        results = {
-          ...baseReport,
-          id: "rep_" + Math.random().toString(36).substring(2, 12),
-          filename: selectedFile.name,
-          size: selectedFile.size,
-          file_type: `${fileExt} Binary / Executable Payload`,
-          timestamp: new Date().toISOString()
-        };
+        // Never present sample/demo data as a completed malware analysis.
+        throw uploadErr;
       }
 
       // Simulated logging step for aesthetics matching the contract parsing
@@ -418,7 +412,9 @@ function App() {
 
     } catch (err: any) {
       console.error(err);
-      setScanLogs(prev => [...prev, `[ERROR] Scan failed: ${err.message || "Unable to reach the analysis service."}`]);
+      const message = err.message || "Unable to reach the analysis service.";
+      setScanLogs(prev => [...prev, `[ERROR] Scan failed: ${message}`]);
+      setScanError(message);
       setScanProgress(0);
       setIsScanning(false);
     }
@@ -758,8 +754,8 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
             >
               <div className="topbar">
                 <div>
-                  <h2>Security Command Overview</h2>
-                  <p className="text-secondary text-sm">Real-time telemetry and threat metrics</p>
+                  <h2>Security overview</h2>
+                  <p className="text-secondary text-sm">Your recent analysis activity and threat metrics</p>
                 </div>
                 <div className="time-badge mono">
                   📅 UTC: {new Date().toISOString().split("T")[0]}
@@ -789,7 +785,7 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
               {/* Summary dashboard section */}
               <div className="dashboard-default grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="glow-card info-card welcome-panel lg:col-span-2">
-                  <h3>Operations Command Active</h3>
+                  <h3>Ready to analyze files</h3>
                   <p className="text-secondary mt-2">
                     Dissect binary samples using safe static parsing methods. Drag-and-drop file executables to parse sections structures, compile cryptographic hashes, list suspicious API call imports, and map matched behaviors to standard MITRE ATT&CK matrices.
                   </p>
@@ -824,7 +820,7 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
 
                 {/* Recent Activities List */}
                 <div className="glow-card lg:col-span-2">
-                  <h4>Recent Analysis Activity Logs</h4>
+                  <h4>Recent analyses</h4>
                   {history.length > 0 ? (
                     <div className="recent-list-summary mt-4">
                       {history.slice(0, 5).map((item, idx) => (
@@ -846,7 +842,7 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
                 </div>
 
                 <div className="glow-card">
-                  <h4>Live Alerts Feed</h4>
+                  <h4>Recent alerts</h4>
                   <div className="mt-4 flex flex-col gap-3">
                     {notifications.slice(0, 2).map((not, idx) => (
                       <div key={idx} className={`feed-alert border-l-2 pl-3 ${
@@ -1299,9 +1295,19 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
                     </div>
                   )}
 
+                  {scanError && !isScanning && (
+                    <div className="scan-error" role="alert">
+                      <AlertTriangle size={18} />
+                      <div>
+                        <strong>Scan could not start</strong>
+                        <p>{scanError}</p>
+                      </div>
+                    </div>
+                  )}
+
                   {!isScanning && (
                     <div className="mt-8">
-                      <h4 className="mono text-xs text-gold uppercase tracking-wider mb-3">Recent Dissections History</h4>
+                      <h4 className="mono text-xs text-gold uppercase tracking-wider mb-3">Recent scans</h4>
                       {history.length > 0 ? (
                         <div className="glow-card p-0 overflow-hidden">
                           <table className="w-full border-collapse text-left text-xs">
@@ -1335,7 +1341,7 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
                         </div>
                       ) : (
                         <div className="text-center py-6 border border-dashed border-color rounded-lg bg-secondary">
-                          <p className="text-secondary text-xs">No reports registered in session history.</p>
+                          <p className="text-secondary text-xs">No scans yet. Upload a supported file to get started.</p>
                         </div>
                       )}
                     </div>
@@ -1378,8 +1384,8 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
             >
               <div className="topbar">
                 <div>
-                  <h2>Threat Intelligence Analytics</h2>
-                  <p className="text-secondary text-sm">Platform telemetry metrics and severity profile breakdowns</p>
+                  <h2>Threat analytics</h2>
+                  <p className="text-secondary text-sm">Risk trends and severity across your analyzed files</p>
                 </div>
               </div>
 
@@ -1524,8 +1530,8 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
             >
               <div className="topbar">
                 <div>
-                  <h2>Threat Telemetry Archival Logs</h2>
-                  <p className="text-secondary text-sm">Browse, search, and reopen compiled malware analysis files</p>
+                  <h2>Scan history</h2>
+                  <p className="text-secondary text-sm">Browse, search, and reopen previous analysis reports</p>
                 </div>
                 {history.length > 0 && (
                   <button 
@@ -1629,8 +1635,8 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
             >
               <div className="topbar">
                 <div>
-                  <h2>Workspace System Settings</h2>
-                  <p className="text-secondary text-sm">Adjust heuristic bounds and active generative reasoning models</p>
+                  <h2>Workspace settings</h2>
+                  <p className="text-secondary text-sm">Control file-size limits and analysis settings</p>
                 </div>
               </div>
 

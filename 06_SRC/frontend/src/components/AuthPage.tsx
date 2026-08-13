@@ -180,8 +180,10 @@ export const AuthPage: React.FC = () => {
             }
             setLoading(false);
           },
-          error_callback: () => {
+          error_callback: (err: any) => {
+            console.warn("GIS token client error / origin mismatch:", err);
             setLoading(false);
+            setErrorMsg(`Google OAuth Setup Notice: Add '${window.location.origin}' to Authorized JavaScript Origins in Google Cloud Console.`);
             setShowGoogleModal(true);
           }
         });

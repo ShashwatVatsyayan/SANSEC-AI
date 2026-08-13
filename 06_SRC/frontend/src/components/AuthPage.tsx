@@ -155,32 +155,14 @@ export const AuthPage: React.FC = () => {
     }, 1200);
   };
 
-  // Google Account sign-in execution
-  const executeGoogleAuth = async (targetEmail: string, targetName?: string) => {
-    if (!targetEmail || !/\S+@\S+\.\S+/.test(targetEmail)) {
-      setErrorMsg("Please enter a valid Google Workspace email address (e.g. name@gmail.com).");
-      return;
-    }
-    setLoading(true);
-    setErrorMsg("");
-    try {
-      await loginGoogle(targetEmail, targetName);
-      setShowGoogleModal(false);
-    } catch (err: any) {
-      setErrorMsg("Google authentication failed.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Triggers native browser Google Account Chooser popup
+  // Triggers native Google OAuth Account Chooser popup directly
   const triggerNativeGoogleSignIn = () => {
     setErrorMsg("");
     setLoading(true);
 
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "234218870563-2q5u309iguo2qf311s0nues60cpfi459.apps.googleusercontent.com";
 
-    // 1. Check if Google Identity Services (GIS) library is loaded
+    // 1. Google Identity Services (GIS) library native chooser
     if ((window as any).google?.accounts?.oauth2) {
       try {
         const client = (window as any).google.accounts.oauth2.initTokenClient({
@@ -196,7 +178,7 @@ export const AuthPage: React.FC = () => {
                 if (res.ok) {
                   const googleUser = await res.json();
                   if (googleUser && googleUser.email) {
-                    await executeGoogleAuth(googleUser.email, googleUser.name);
+                    await loginGoogle(googleUser.email, googleUser.name);
                     return;
                   }
                 }
@@ -207,10 +189,8 @@ export const AuthPage: React.FC = () => {
             setLoading(false);
           },
           error_callback: (err: any) => {
-            console.warn("GIS token client error / origin mismatch:", err);
+            console.warn("GIS token client error:", err);
             setLoading(false);
-            setErrorMsg(`Google OAuth Setup Notice: Add '${window.location.origin}' to Authorized JavaScript Origins in Google Cloud Console.`);
-            setShowGoogleModal(true);
           }
         });
         client.requestAccessToken({ prompt: "select_account" });
@@ -237,7 +217,6 @@ export const AuthPage: React.FC = () => {
 
     if (!popup || popup.closed || typeof popup.closed === "undefined") {
       setLoading(false);
-      setShowGoogleModal(true);
     } else {
       const checkPopup = setInterval(() => {
         if (!popup || popup.closed) {
@@ -559,102 +538,6 @@ export const AuthPage: React.FC = () => {
         </div>
       </motion.div>
 
-      {/* Google Account Selector Modal */}
-      <AnimatePresence>
-        {showGoogleModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="login-card glow-card max-w-md w-full relative"
-              style={{ padding: '32px 24px' }}
-            >
-              <div className="flex justify-between items-center mb-4 pb-2 border-b border-color">
-                <div className="flex items-center gap-2">
-                  <Globe className="text-gold" size={20} />
-                  <h3 className="font-bold text-lg">Sign in with Google</h3>
-                </div>
-                <button 
-                  onClick={() => setShowGoogleModal(false)}
-                  className="text-muted hover:text-white bg-transparent border-none text-lg cursor-pointer px-2"
-                >
-                  ✕
-                </button>
-              </div>
-
-              <p className="text-xs text-secondary mb-3">
-                Select an account already signed in on your browser or enter your Google Workspace email address:
-              </p>
-
-              <button 
-                type="button" 
-                onClick={triggerNativeGoogleSignIn} 
-                className="btn-primary w-full py-2.5 text-xs flex items-center justify-center gap-2 mb-4 bg-gold text-black font-bold hover:brightness-110 cursor-pointer shadow-md"
-              >
-                <Globe size={16} />
-                <span>Select from Browser Google Accounts</span>
-              </button>
-
-              <div className="oauth-separator mb-4">
-                <span>OR ENTER EMAIL MANUALLY</span>
-              </div>
-              <form onSubmit={(e) => { e.preventDefault(); executeGoogleAuth(customGoogleEmail, customGoogleName); }} className="flex flex-col gap-3">
-                <div className="form-group">
-                  <label className="text-xs font-semibold">Google Workspace Email Address</label>
-                  <div className="input-wrapper">
-                    <Mail className="input-icon" size={16} />
-                    <input 
-                      type="email" 
-                      placeholder="your.name@gmail.com or analyst@company.com"
-                      value={customGoogleEmail}
-                      onChange={(e) => setCustomGoogleEmail(e.target.value)}
-                      className="login-input text-sm"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label className="text-xs font-semibold">Display Name (Optional)</label>
-                  <div className="input-wrapper">
-                    <UserIcon className="input-icon" size={16} />
-                    <input 
-                      type="text" 
-                      placeholder="e.g. Alex Rivera"
-                      value={customGoogleName}
-                      onChange={(e) => setCustomGoogleName(e.target.value)}
-                      className="login-input text-sm"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex gap-2 mt-3">
-                  <button 
-                    type="button" 
-                    onClick={() => setShowGoogleModal(false)}
-                    className="btn-secondary flex-1 py-2 text-xs cursor-pointer"
-                  >
-                    Cancel
-                  </button>
-                  <button 
-                    type="submit" 
-                    disabled={loading || !customGoogleEmail}
-                    className="btn-primary flex-1 py-2 text-xs flex items-center justify-center gap-1.5 cursor-pointer"
-                  >
-                    {loading ? <div className="auth-spinner"></div> : (
-                      <>
-                        <Globe size={14} />
-                        <span>Sign In with Google</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </div>
   );
 };

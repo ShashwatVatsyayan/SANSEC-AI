@@ -459,18 +459,35 @@ export const api = {
 
   history: {
     getHistoryLogs: async (params: { q?: string; threat_level?: string; page?: number; limit?: number } = {}): Promise<HistoryItem[]> => {
-      const queryParams = new URLSearchParams();
-      if (params.q) queryParams.append("q", params.q);
-      if (params.threat_level && params.threat_level !== "ALL") queryParams.append("threat_level", params.threat_level);
-      if (params.page) queryParams.append("page", params.page.toString());
-      if (params.limit) queryParams.append("limit", params.limit.toString());
+      const activeUser = tokenManager.getUserProfile();
+      const userId = activeUser?.id || "usr_default";
 
       try {
+        const queryParams = new URLSearchParams();
+        if (params.q) queryParams.append("q", params.q);
+        if (params.threat_level && params.threat_level !== "ALL") queryParams.append("threat_level", params.threat_level);
         const res = await apiFetch(`/api/history?${queryParams.toString()}`);
-        if (res.ok) return await res.json();
+        if (res.ok) {
+          const remoteHistory: HistoryItem[] = await res.json();
+          if (remoteHistory && remoteHistory.length > 0) return remoteHistory;
+        }
       } catch (e) {}
       
-      let filtered = [...MOCK_HISTORY];
+      const storageKey = `sansec_user_history_${userId}`;
+      const rawUserHistory = localStorage.getItem(storageKey);
+      let userLogs: HistoryItem[] = [];
+
+      if (rawUserHistory !== null) {
+        try { userLogs = JSON.parse(rawUserHistory); } catch (e) { userLogs = []; }
+      } else if (userId === "usr_91238a0" || activeUser?.email === "analyst@sansec.ai") {
+        userLogs = [...MOCK_HISTORY];
+        localStorage.setItem(storageKey, JSON.stringify(userLogs));
+      } else {
+        userLogs = [];
+        localStorage.setItem(storageKey, JSON.stringify([]));
+      }
+
+      let filtered = [...userLogs];
       if (params.q) {
         filtered = filtered.filter(i => i.filename.toLowerCase().includes(params.q!.toLowerCase()) || i.id.includes(params.q!));
       }
@@ -478,6 +495,35 @@ export const api = {
         filtered = filtered.filter(i => i.threat_level.toUpperCase() === params.threat_level!.toUpperCase());
       }
       return filtered;
+    },
+
+    addHistoryItem: async (item: HistoryItem): Promise<void> => {
+      const activeUser = tokenManager.getUserProfile();
+      const userId = activeUser?.id || "usr_default";
+      const storageKey = `sansec_user_history_${userId}`;
+      const rawUserHistory = localStorage.getItem(storageKey);
+      let userLogs: HistoryItem[] = [];
+      if (rawUserHistory) {
+        try { userLogs = JSON.parse(rawUserHistory); } catch (e) { userLogs = []; }
+      }
+      const isNew = !userLogs.some(existing => existing.id === item.id);
+      if (isNew) {
+        userLogs.unshift(item);
+        localStorage.setItem(storageKey, JSON.stringify(userLogs));
+      }
+    },
+
+    clearHistoryLogs: async (): Promise<void> => {
+      const activeUser = tokenManager.getUserProfile();
+      const userId = activeUser?.id || "usr_default";
+      const storageKey = `sansec_user_history_${userId}`;
+      localStorage.setItem(storageKey, JSON.stringify([]));
+
+      try {
+        await apiFetch("/api/history", { method: "DELETE" });
+      } catch (e) {
+        console.warn("Backend clear history request failed, cleared client local history.");
+      }
     }
   },
 

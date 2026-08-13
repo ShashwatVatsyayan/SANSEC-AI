@@ -586,6 +586,13 @@ async def get_history_logs(
     return records[start : start + limit]
 
 
+@app.delete("/api/history")
+async def clear_history_logs(_user: dict[str, Any] = Depends(current_user)):
+    if hasattr(history_repository, "clear_history"):
+        await history_repository.clear_history()
+    return {"status": "ok", "message": "Scan history records cleared successfully."}
+
+
 @app.post("/api/ai/explain")
 async def explain_report_with_ai(request: AIExplainRequest, _user: dict[str, Any] = Depends(current_user)):
     report = await get_report_or_404(request.file_hash)

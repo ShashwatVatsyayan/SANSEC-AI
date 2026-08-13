@@ -247,6 +247,10 @@ class MongoHistoryRepository:
         cursor = self._collection.find({}, {"_id": False}).sort("timestamp", -1).limit(limit)
         return [dict(item) for item in await cursor.to_list(length=limit)]
 
+    async def clear_history(self) -> None:
+        if self._collection is not None:
+            await self._collection.delete_many({})
+
 
 class MongoSettingsRepository:
     def __init__(self) -> None:
@@ -407,6 +411,9 @@ class AsyncInMemoryHistoryRepository:
 
     async def get_history(self, limit: int = 100) -> list[dict[str, Any]]:
         return self._sync_store.history(limit)
+
+    async def clear_history(self) -> None:
+        self._sync_store._history.clear()
 
 
 class AsyncInMemorySettingsRepository:

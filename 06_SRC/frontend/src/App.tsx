@@ -23,7 +23,8 @@ import {
   User,
   Sliders,
   ShieldCheck,
-  Server
+  Server,
+  Trash2
 } from "lucide-react";
 import "./App.css";
 
@@ -133,6 +134,14 @@ function App() {
       setHistory(data);
     } catch (err) {
       console.error("Failed to sync history logs:", err);
+    }
+  };
+
+  const handleClearHistory = async () => {
+    if (window.confirm("Are you sure you want to clear all your scan records? This action cannot be undone.")) {
+      await api.history.clearHistoryLogs();
+      fetchHistory();
+      fetchDashboardStats();
     }
   };
 
@@ -299,10 +308,19 @@ function App() {
       setScanLogs(prev => [...prev, "[SUCCESS] Dissection completed. Data synchronized."]);
       setScanProgress(100);
 
-      setTimeout(() => {
+      setTimeout(async () => {
         setSelectedReport(results);
         setIsScanning(false);
         setFile(null);
+        await api.history.addHistoryItem({
+          id: results.id,
+          filename: results.filename,
+          size: results.size,
+          risk_score: results.risk_score,
+          threat_level: results.threat_level,
+          file_type: results.file_type,
+          timestamp: results.timestamp || new Date().toISOString()
+        });
         fetchHistory();
         fetchDashboardStats();
       }, 500);
@@ -1316,6 +1334,16 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
                   <h2>Threat Telemetry Archival Logs</h2>
                   <p className="text-secondary text-sm">Browse, search, and reopen compiled malware analysis files</p>
                 </div>
+                {history.length > 0 && (
+                  <button 
+                    onClick={handleClearHistory}
+                    className="btn-secondary text-xs text-red hover:bg-red/10 border-red/30 flex items-center gap-1.5 px-3 py-1.5 rounded transition-all cursor-pointer"
+                    title="Clear your scan records"
+                  >
+                    <Trash2 size={14} className="text-red" />
+                    <span>Clear Scan Records</span>
+                  </button>
+                )}
               </div>
 
               {/* Filtering / Search tools */}

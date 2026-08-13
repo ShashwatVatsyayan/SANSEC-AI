@@ -150,14 +150,14 @@ export const AuthPage: React.FC = () => {
             >
               <div className="form-group">
                 <label>Console Identity ID</label>
-                <div className="relative">
-                  <UserIcon className="absolute left-3 top-3.5 text-muted" size={14} />
+                <div className="input-wrapper">
+                  <UserIcon className="input-icon" size={16} />
                   <input 
                     type="text" 
                     placeholder="e.g. analyst"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    className="login-input pl-10 w-full"
+                    className="login-input"
                   />
                 </div>
               </div>
@@ -173,14 +173,14 @@ export const AuthPage: React.FC = () => {
                     Forgot Token?
                   </button>
                 </div>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-3.5 text-muted" size={14} />
+                <div className="input-wrapper">
+                  <Lock className="input-icon" size={16} />
                   <input 
                     type="password" 
                     placeholder="••••••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="login-input pl-10 w-full"
+                    className="login-input"
                   />
                 </div>
               </div>
@@ -228,56 +228,56 @@ export const AuthPage: React.FC = () => {
             >
               <div className="form-group">
                 <label>Username Identity</label>
-                <div className="relative">
-                  <UserIcon className="absolute left-3 top-3.5 text-muted" size={14} />
+                <div className="input-wrapper">
+                  <UserIcon className="input-icon" size={16} />
                   <input 
                     type="text" 
                     placeholder="e.g. analyst_name"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    className="login-input pl-10 w-full"
+                    className="login-input"
                   />
                 </div>
               </div>
 
               <div className="form-group">
                 <label>Email Scope</label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-3.5 text-muted" size={14} />
+                <div className="input-wrapper">
+                  <Mail className="input-icon" size={16} />
                   <input 
                     type="email" 
                     placeholder="name@sansec.ai"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="login-input pl-10 w-full"
+                    className="login-input"
                   />
                 </div>
               </div>
 
               <div className="form-group">
                 <label>Password Token (min 8 chars)</label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-3.5 text-muted" size={14} />
+                <div className="input-wrapper">
+                  <Lock className="input-icon" size={16} />
                   <input 
                     type="password" 
                     placeholder="••••••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="login-input pl-10 w-full"
+                    className="login-input"
                   />
                 </div>
               </div>
 
               <div className="form-group">
                 <label>Confirm Password Token</label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-3.5 text-muted" size={14} />
+                <div className="input-wrapper">
+                  <Lock className="input-icon" size={16} />
                   <input 
                     type="password" 
                     placeholder="••••••••••••"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="login-input pl-10 w-full"
+                    className="login-input"
                   />
                 </div>
               </div>
@@ -310,14 +310,14 @@ export const AuthPage: React.FC = () => {
             >
               <div className="form-group">
                 <label>Registered Email Scope</label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-3.5 text-muted" size={14} />
+                <div className="input-wrapper">
+                  <Mail className="input-icon" size={16} />
                   <input 
                     type="email" 
                     placeholder="name@sansec.ai"
                     value={resetEmail}
                     onChange={(e) => setResetEmail(e.target.value)}
-                    className="login-input pl-10 w-full"
+                    className="login-input"
                   />
                 </div>
               </div>
@@ -416,28 +416,28 @@ export const AuthPage: React.FC = () => {
               <form onSubmit={(e) => { e.preventDefault(); executeGoogleAuth(customGoogleEmail, customGoogleName); }} className="flex flex-col gap-3">
                 <div className="form-group">
                   <label className="text-xs">Google Email Address</label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-3 text-muted" size={14} />
+                  <div className="input-wrapper">
+                    <Mail className="input-icon" size={16} />
                     <input 
                       type="email" 
                       placeholder="your.name@gmail.com"
                       value={customGoogleEmail}
                       onChange={(e) => setCustomGoogleEmail(e.target.value)}
-                      className="login-input pl-10 w-full text-sm"
+                      className="login-input text-sm"
                     />
                   </div>
                 </div>
 
                 <div className="form-group">
                   <label className="text-xs">Display Name (Optional)</label>
-                  <div className="relative">
-                    <UserIcon className="absolute left-3 top-3 text-muted" size={14} />
+                  <div className="input-wrapper">
+                    <UserIcon className="input-icon" size={16} />
                     <input 
                       type="text" 
                       placeholder="e.g. Alex Rivera"
                       value={customGoogleName}
                       onChange={(e) => setCustomGoogleName(e.target.value)}
-                      className="login-input pl-10 w-full text-sm"
+                      className="login-input text-sm"
                     />
                   </div>
                 </div>

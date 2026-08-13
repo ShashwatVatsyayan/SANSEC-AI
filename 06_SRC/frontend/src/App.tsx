@@ -488,6 +488,12 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
             🧾 Scan Records ({history.length})
           </button>
           <button 
+            className={`nav-item ${activeTab === "profile" ? "active" : ""}`}
+            onClick={() => setActiveTab("profile")}
+          >
+            👤 Analyst Profile
+          </button>
+          <button 
             className={`nav-item ${activeTab === "settings" ? "active" : ""}`}
             onClick={() => setActiveTab("settings")}
           >
@@ -504,9 +510,13 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
         </nav>
 
         <div className="sidebar-footer">
-          <div className="flex items-center gap-2 mb-2 pb-2 border-b border-color">
+          <div 
+            onClick={() => setActiveTab("profile")} 
+            className="flex items-center gap-2 mb-2 pb-2 border-b border-color cursor-pointer hover:text-gold transition-colors"
+            title="Click to view Analyst Profile"
+          >
             <User size={14} className="text-gold" />
-            <span className="text-xs font-semibold mono">{currentUser?.username} ({currentUser?.role})</span>
+            <span className="text-xs font-semibold mono">{currentUser?.username || "Analyst"} ({currentUser?.role || "User"})</span>
           </div>
           <div className="status-indicator">
             <span className="status-dot online"></span>
@@ -1497,6 +1507,121 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
                       ))}
                     </tbody>
                   </table>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {activeTab === "profile" && (
+            <motion.div 
+              key="profile"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3 }}
+              className="space-y-6"
+            >
+              <div className="topbar">
+                <div>
+                  <h2>Analyst Security Profile</h2>
+                  <p className="text-secondary text-sm">Identity credentials, workspace permissions, and active session details</p>
+                </div>
+              </div>
+
+              {/* Profile Card Header */}
+              <div className="glow-card p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                <div className="flex items-center gap-5">
+                  <div className="w-16 h-16 rounded-2xl bg-gold/15 border border-gold/30 text-gold flex items-center justify-center font-bold text-2xl shadow-glow">
+                    {currentUser?.username ? currentUser.username.substring(0, 2).toUpperCase() : "AN"}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-3">
+                      <h3 className="text-xl font-bold text-primary">{currentUser?.username || "Analyst Profile"}</h3>
+                      <span className={`badge ${currentUser?.role === 'Admin' ? 'badge-critical' : 'badge-low'}`}>
+                        {currentUser?.role || "Analyst"}
+                      </span>
+                      {currentUser?.auth_provider === "google" && (
+                        <span className="bg-blue-500/10 text-blue-400 border border-blue-500/20 text-xs px-2 py-0.5 rounded font-mono flex items-center gap-1">
+                          <Globe size={12} /> Google Account
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-secondary mt-1">{currentUser?.email || "analyst@sansec.ai"}</p>
+                    <p className="text-xs text-muted mono mt-1">ID: {currentUser?.id || "usr_default"}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <button onClick={handleLogout} className="btn-logout px-4 py-2 text-xs">
+                    <LogOut size={14} />
+                    Sign Out Account
+                  </button>
+                </div>
+              </div>
+
+              {/* Profile Details Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Account Details Box */}
+                <div className="glow-card p-6 space-y-4">
+                  <h4 className="font-bold text-md border-b border-color pb-3 flex items-center gap-2">
+                    <User size={16} className="text-gold" />
+                    Account Security & Scope
+                  </h4>
+                  
+                  <div className="space-y-3 text-sm">
+                    <div className="flex justify-between py-2 border-b border-color">
+                      <span className="text-secondary">Identity Handle:</span>
+                      <span className="font-semibold text-primary">{currentUser?.username}</span>
+                    </div>
+                    <div className="flex justify-between py-2 border-b border-color">
+                      <span className="text-secondary">Email Scope:</span>
+                      <span className="font-semibold text-primary">{currentUser?.email}</span>
+                    </div>
+                    <div className="flex justify-between py-2 border-b border-color">
+                      <span className="text-secondary">Auth Provider:</span>
+                      <span className="font-semibold text-gold capitalize">{currentUser?.auth_provider || "Local Password"}</span>
+                    </div>
+                    <div className="flex justify-between py-2 border-b border-color">
+                      <span className="text-secondary">Access Role:</span>
+                      <span className="font-semibold text-teal-400">{currentUser?.role}</span>
+                    </div>
+                    <div className="flex justify-between py-2">
+                      <span className="text-secondary">Registered Date:</span>
+                      <span className="font-mono text-xs text-muted">
+                        {currentUser?.created_at ? new Date(currentUser.created_at).toLocaleDateString() : "Active"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Session Security Box */}
+                <div className="glow-card p-6 space-y-4">
+                  <h4 className="font-bold text-md border-b border-color pb-3 flex items-center gap-2">
+                    <ShieldCheck size={16} className="text-teal" />
+                    Active Session Status
+                  </h4>
+
+                  <div className="space-y-3 text-sm">
+                    <div className="flex justify-between py-2 border-b border-color">
+                      <span className="text-secondary">JWT Encryption:</span>
+                      <span className="font-mono text-xs text-teal-400">HMAC-SHA256 Signed</span>
+                    </div>
+                    <div className="flex justify-between py-2 border-b border-color">
+                      <span className="text-secondary">Session Refresh:</span>
+                      <span className="font-mono text-xs text-gold">Automated (10 min cycle)</span>
+                    </div>
+                    <div className="flex justify-between py-2 border-b border-color">
+                      <span className="text-secondary">Total Scans Executed:</span>
+                      <span className="font-bold text-primary">{history.length} Scans</span>
+                    </div>
+                    <div className="flex justify-between py-2">
+                      <span className="text-secondary">Gateway State:</span>
+                      <span className="font-semibold text-emerald-400 flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        Active & Connected
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </motion.div>

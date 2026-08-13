@@ -5,6 +5,7 @@ interface AuthContextType {
   user: UserResponse | null;
   loading: boolean;
   login: (username: string, password: string) => Promise<void>;
+  loginGoogle: (email: string, name?: string) => Promise<void>;
   register: (username: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshSession: () => Promise<boolean>;
@@ -94,6 +95,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const loginGoogle = async (email: string, name?: string) => {
+    setLoading(true);
+    try {
+      const profile = await api.auth.loginGoogle(email, name);
+      setUser(profile);
+    } catch (err) {
+      tokenManager.clearTokens();
+      setUser(null);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const register = async (username: string, email: string, password: string) => {
     setLoading(true);
     try {
@@ -124,6 +139,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     user,
     loading,
     login,
+    loginGoogle,
     register,
     logout,
     refreshSession,

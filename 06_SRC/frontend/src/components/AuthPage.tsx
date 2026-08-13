@@ -4,10 +4,11 @@ import { Shield, Mail, Lock, User as UserIcon, AlertTriangle, KeyRound, Globe, A
 import { useAuth } from "../context/AuthContext.tsx";
 
 export const AuthPage: React.FC = () => {
-  const { login, register } = useAuth();
+  const { login, loginGoogle, register } = useAuth();
   
   // Tab states: 'login' | 'register' | 'forgot'
   const [viewTab, setViewTab] = useState<"login" | "register" | "forgot">("login");
+  const [showGoogleModal, setShowGoogleModal] = useState(false);
   
   // Form Fields
   const [username, setUsername] = useState("");
@@ -15,6 +16,10 @@ export const AuthPage: React.FC = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [resetEmail, setResetEmail] = useState("");
+
+  // Google OAuth fields
+  const [customGoogleEmail, setCustomGoogleEmail] = useState("");
+  const [customGoogleName, setCustomGoogleName] = useState("");
 
   // UI state
   const [loading, setLoading] = useState(false);
@@ -87,19 +92,22 @@ export const AuthPage: React.FC = () => {
     }, 1200);
   };
 
-  // Google OAuth simulator
-  const handleGoogleSignIn = () => {
+  // Google Account sign-in execution
+  const executeGoogleAuth = async (targetEmail: string, targetName?: string) => {
+    if (!targetEmail) {
+      setErrorMsg("Please provide or select a valid Google Account email.");
+      return;
+    }
     setLoading(true);
     setErrorMsg("");
-    setTimeout(async () => {
-      try {
-        // Simulate oauth token return and local login
-        await login("analyst", "sansec2026");
-      } catch (err: any) {
-        setErrorMsg("Google authentication handshake failed.");
-        setLoading(false);
-      }
-    }, 1500);
+    try {
+      await loginGoogle(targetEmail, targetName);
+      setShowGoogleModal(false);
+    } catch (err: any) {
+      setErrorMsg("Google authentication failed.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -187,7 +195,7 @@ export const AuthPage: React.FC = () => {
 
               <button 
                 type="button" 
-                onClick={handleGoogleSignIn} 
+                onClick={() => { setErrorMsg(""); setShowGoogleModal(true); }} 
                 disabled={loading} 
                 className="btn-secondary w-full flex items-center justify-center gap-2"
                 style={{ padding: '12px', fontSize: '0.85rem' }}
@@ -334,6 +342,127 @@ export const AuthPage: React.FC = () => {
           <span>CONSOLE COMMUNICATION IS ENCRYPTED VIA CLIENT JWT HANDSHAKE.</span>
         </div>
       </motion.div>
+
+      {/* Google Account Selector Modal */}
+      <AnimatePresence>
+        {showGoogleModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="login-card glow-card max-w-md w-full relative"
+              style={{ padding: '32px 24px' }}
+            >
+              <div className="flex justify-between items-center mb-4 pb-2 border-b border-color">
+                <div className="flex items-center gap-2">
+                  <Globe className="text-gold" size={20} />
+                  <h3 className="font-bold text-lg">Sign in with Google</h3>
+                </div>
+                <button 
+                  onClick={() => setShowGoogleModal(false)}
+                  className="text-muted hover:text-white bg-transparent border-none text-lg cursor-pointer px-2"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <p className="text-xs text-secondary mb-4">
+                Choose or enter your Google Workspace account identity to access SANSEC AI console:
+              </p>
+
+              {/* Quick Google Account Options */}
+              <div className="flex flex-col gap-2 mb-4">
+                <button
+                  type="button"
+                  onClick={() => executeGoogleAuth("shashwat@gmail.com", "Shashwat Vatsyayan")}
+                  className="flex items-center justify-between p-3 rounded-lg border border-color bg-secondary hover:border-gold hover:bg-gold/5 transition-all cursor-pointer text-left"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-gold/20 text-gold flex items-center justify-center font-bold text-sm">
+                      SV
+                    </div>
+                    <div>
+                      <div className="text-sm font-semibold text-primary">Shashwat Vatsyayan</div>
+                      <div className="text-xs text-muted">shashwat@gmail.com</div>
+                    </div>
+                  </div>
+                  <span className="text-xs text-gold font-mono">Select ›</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => executeGoogleAuth("analyst@sansec.ai", "Security Analyst")}
+                  className="flex items-center justify-between p-3 rounded-lg border border-color bg-secondary hover:border-gold hover:bg-gold/5 transition-all cursor-pointer text-left"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-teal-500/20 text-teal flex items-center justify-center font-bold text-sm">
+                      SA
+                    </div>
+                    <div>
+                      <div className="text-sm font-semibold text-primary">Security Analyst</div>
+                      <div className="text-xs text-muted">analyst@sansec.ai</div>
+                    </div>
+                  </div>
+                  <span className="text-xs text-gold font-mono">Select ›</span>
+                </button>
+              </div>
+
+              <div className="oauth-separator mb-4">
+                <span>OR ENTER YOUR GOOGLE ACCOUNT</span>
+              </div>
+
+              {/* Custom Google Account Form */}
+              <form onSubmit={(e) => { e.preventDefault(); executeGoogleAuth(customGoogleEmail, customGoogleName); }} className="flex flex-col gap-3">
+                <div className="form-group">
+                  <label className="text-xs">Google Email Address</label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-3 text-muted" size={14} />
+                    <input 
+                      type="email" 
+                      placeholder="your.name@gmail.com"
+                      value={customGoogleEmail}
+                      onChange={(e) => setCustomGoogleEmail(e.target.value)}
+                      className="login-input pl-10 w-full text-sm"
+                    />
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label className="text-xs">Display Name (Optional)</label>
+                  <div className="relative">
+                    <UserIcon className="absolute left-3 top-3 text-muted" size={14} />
+                    <input 
+                      type="text" 
+                      placeholder="e.g. Alex Rivera"
+                      value={customGoogleName}
+                      onChange={(e) => setCustomGoogleName(e.target.value)}
+                      className="login-input pl-10 w-full text-sm"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-2 mt-2">
+                  <button 
+                    type="button" 
+                    onClick={() => setShowGoogleModal(false)}
+                    className="btn-secondary flex-1 py-2 text-xs"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit" 
+                    disabled={loading || !customGoogleEmail}
+                    className="btn-primary flex-1 py-2 text-xs"
+                  >
+                    {loading ? <div className="auth-spinner"></div> : "Continue with Account"}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

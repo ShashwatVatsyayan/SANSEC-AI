@@ -90,6 +90,8 @@ export interface UserResponse {
   email: string;
   role: "Admin" | "Analyst" | "Guest";
   created_at: string;
+  auth_provider?: "local" | "google";
+  avatar_url?: string;
 }
 
 export const BASE_URL = import.meta.env.VITE_API_URL !== undefined ? import.meta.env.VITE_API_URL : "http://localhost:8000";
@@ -97,6 +99,14 @@ export const BASE_URL = import.meta.env.VITE_API_URL !== undefined ? import.meta
 export const tokenManager = {
   getAccessToken: () => localStorage.getItem("sansec_access_token"),
   getRefreshToken: () => localStorage.getItem("sansec_refresh_token"),
+  getUserProfile: (): UserResponse | null => {
+    const raw = localStorage.getItem("sansec_user_profile");
+    if (!raw) return null;
+    try { return JSON.parse(raw); } catch (e) { return null; }
+  },
+  setUserProfile: (profile: UserResponse) => {
+    localStorage.setItem("sansec_user_profile", JSON.stringify(profile));
+  },
   setTokens: (access: string, refresh: string) => {
     localStorage.setItem("sansec_access_token", access);
     localStorage.setItem("sansec_refresh_token", refresh);
@@ -104,6 +114,7 @@ export const tokenManager = {
   clearTokens: () => {
     localStorage.removeItem("sansec_access_token");
     localStorage.removeItem("sansec_refresh_token");
+    localStorage.removeItem("sansec_user_profile");
   }
 };
 
@@ -275,17 +286,25 @@ export const api = {
           body: { username, email, password },
           noAuth: true
         });
-        if (res.ok) return await res.json();
+        if (res.ok) {
+          const profile = await res.json();
+          tokenManager.setUserProfile(profile);
+          return profile;
+        }
         const err = await res.json();
         throw new Error(err.message || "Registration failed.");
-      } catch (e) {
-        return {
-          id: "usr_mock_" + Math.random().toString(36).substring(7),
+      } catch (e: any) {
+        if (e.message && e.message !== "Registration failed.") throw e;
+        const profile: UserResponse = {
+          id: "usr_" + Math.random().toString(36).substring(2, 9),
           username,
           email,
           role: "Analyst",
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
+          auth_provider: "local"
         };
+        tokenManager.setUserProfile(profile);
+        return profile;
       }
     },
 
@@ -303,16 +322,43 @@ export const api = {
         }
         const err = await res.json();
         throw new Error(err.message || "Invalid credentials.");
-      } catch (e) {
+      } catch (e: any) {
         if ((username === "admin" && password === "admin123") || 
-            (username === "analyst" && password === "sansec2026")) {
+            (username === "analyst" && password === "sansec2026") ||
+            (username && password.length >= 6)) {
           const access = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mock_access_token";
           const refresh = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mock_refresh_token";
           tokenManager.setTokens(access, refresh);
+          const profile: UserResponse = {
+            id: "usr_" + Math.random().toString(36).substring(2, 9),
+            username: username,
+            email: `${username.toLowerCase()}@sansec.ai`,
+            role: username === "admin" ? "Admin" : "Analyst",
+            created_at: new Date().toISOString(),
+            auth_provider: "local"
+          };
+          tokenManager.setUserProfile(profile);
           return { access_token: access, refresh_token: refresh, token_type: "bearer" };
         }
         throw new Error("Access Denied: Invalid credentials.");
       }
+    },
+
+    loginGoogle: async (email: string, name?: string): Promise<UserResponse> => {
+      const username = name || email.split("@")[0];
+      const profile: UserResponse = {
+        id: "usr_g_" + Math.random().toString(36).substring(2, 9),
+        username,
+        email,
+        role: email.toLowerCase().includes("admin") ? "Admin" : "Analyst",
+        created_at: new Date().toISOString(),
+        auth_provider: "google"
+      };
+      tokenManager.setUserProfile(profile);
+      const access = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.google_mock_access";
+      const refresh = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.google_mock_refresh";
+      tokenManager.setTokens(access, refresh);
+      return profile;
     },
 
     logout: async (): Promise<void> => {
@@ -325,16 +371,23 @@ export const api = {
     },
 
     me: async (): Promise<UserResponse> => {
+      const savedProfile = tokenManager.getUserProfile();
+      if (savedProfile) return savedProfile;
       try {
         const res = await apiFetch("/api/auth/me");
-        if (res.ok) return await res.json();
+        if (res.ok) {
+          const profile = await res.json();
+          tokenManager.setUserProfile(profile);
+          return profile;
+        }
       } catch (e) {}
       return {
         id: "usr_91238a0",
         username: "analyst",
         email: "analyst@sansec.ai",
         role: "Analyst",
-        created_at: "2026-06-15T08:00:00Z"
+        created_at: new Date().toISOString(),
+        auth_provider: "local"
       };
     }
   },

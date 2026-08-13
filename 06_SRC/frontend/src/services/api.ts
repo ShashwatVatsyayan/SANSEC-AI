@@ -99,8 +99,16 @@ export interface UserResponse {
 export const BASE_URL = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
 
 export const tokenManager = {
-  getAccessToken: () => localStorage.getItem("sansec_access_token"),
-  getRefreshToken: () => localStorage.getItem("sansec_refresh_token"),
+  getAccessToken: () => {
+    const token = localStorage.getItem("sansec_access_token");
+    if (!token || token === "null" || token === "undefined" || token === "none") return null;
+    return token;
+  },
+  getRefreshToken: () => {
+    const token = localStorage.getItem("sansec_refresh_token");
+    if (!token || token === "null" || token === "undefined" || token === "none") return null;
+    return token;
+  },
   getUserProfile: (): UserResponse | null => {
     const raw = localStorage.getItem("sansec_user_profile");
     if (!raw) return null;

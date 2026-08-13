@@ -49,6 +49,7 @@ import {
 
 import { useAuth } from "./context/AuthContext.tsx";
 import { AuthPage } from "./components/AuthPage.tsx";
+import { BlackHoleBackground } from "./components/BlackHoleBackground.tsx";
 
 
 function App() {
@@ -514,7 +515,8 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
   }
 
   return (
-    <div className="app-container">
+    <div className="app-container relative">
+      <BlackHoleBackground />
       {/* Hidden File Input for Profile Avatar Upload */}
       <input 
         type="file" 

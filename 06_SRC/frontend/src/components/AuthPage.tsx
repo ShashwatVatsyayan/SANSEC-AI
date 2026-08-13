@@ -4,6 +4,8 @@ import { Shield, Mail, Lock, User as UserIcon, AlertTriangle, KeyRound, Globe, A
 import { useAuth } from "../context/AuthContext.tsx";
 import { registeredUsersManager } from "../services/api.ts";
 
+import { BlackHoleBackground } from "./BlackHoleBackground.tsx";
+
 export const AuthPage: React.FC = () => {
   const { login, loginGoogle, register } = useAuth();
   
@@ -223,7 +225,8 @@ export const AuthPage: React.FC = () => {
   };
 
   return (
-    <div className="login-screen-container">
+    <div className="login-screen-container relative">
+      <BlackHoleBackground />
       <motion.div 
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}

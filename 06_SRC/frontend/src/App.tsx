@@ -3,12 +3,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   Shield, 
   Upload, 
-  Terminal as TermIcon, 
   History as HistIcon, 
   TrendingUp, 
   Cpu, 
   Settings, 
-  FileText, 
   Download, 
   Send, 
   Bot, 
@@ -17,7 +15,6 @@ import {
   FileCode, 
   LogOut, 
   AlertTriangle, 
-  CheckCircle, 
   Globe, 
   ChevronRight,
   User,
@@ -25,12 +22,7 @@ import {
   ShieldCheck,
   Server,
   Trash2,
-  PanelLeftClose,
-  PanelLeftOpen,
-  Menu,
-  X,
   Camera,
-  Sparkles,
   UserCheck,
   ChevronDown
 } from "lucide-react";
@@ -139,9 +131,6 @@ function App() {
   const [selectedReport, setSelectedReport] = useState<AnalysisReport | null>(null);
   
   // Sidebar & Topbar UI State
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
-    return localStorage.getItem("sansec_sidebar_collapsed") === "true";
-  });
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState<boolean>(false);
 
@@ -181,7 +170,6 @@ function App() {
   // Filters and Search for History/Analytics
   const [historySearch, setHistorySearch] = useState<string>("");
   const [historyFilter, setHistoryFilter] = useState<string>("ALL");
-  const [analyticsFilterType, setAnalyticsFilterType] = useState<string>("ALL");
 
   // Settings & System configuration state
   const [workspaceSettings, setWorkspaceSettings] = useState<WorkspaceSettings>({
@@ -206,14 +194,6 @@ function App() {
   const fileInputAvatarRef = useRef<HTMLInputElement>(null);
   const logTerminalEndRef = useRef<HTMLDivElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
-
-  const toggleSidebar = () => {
-    setIsSidebarCollapsed(prev => {
-      const next = !prev;
-      localStorage.setItem("sansec_sidebar_collapsed", String(next));
-      return next;
-    });
-  };
 
   const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const uploaded = e.target.files?.[0];
@@ -351,6 +331,9 @@ function App() {
     if (e.target.files && e.target.files[0]) {
       setFile(e.target.files[0]);
       setScanError("");
+      setScanLogs([]);
+      setIsScanning(false);
+      setScanProgress(0);
     }
   };
 
@@ -430,7 +413,7 @@ function App() {
           });
           fetchHistory();
           fetchDashboardStats();
-          generateAiReport(results.id);
+          generateAiReport(results.id, results);
         }, 400);
         return;
       }
@@ -457,6 +440,7 @@ function App() {
               resolve({ task_id: xhr.responseText, status: "Processing" });
             }
           } else if (xhr.status === 413) {
+            // Vercel 4.5MB payload cap – fall back to client-side dissection
             resolve({ task_id: "large_file_fallback", status: "Local_Engine" });
           } else {
             let message = `The server rejected the upload (HTTP ${xhr.status}).`;
@@ -481,13 +465,26 @@ function App() {
       let results: AnalysisReport;
       try {
         const uploadResult = await uploadPromise;
-        setScanLogs(prev => [
-          ...prev, 
-          `[+] Payload received by server. Task ID generated: ${uploadResult.task_id.substring(0, 16)}...`,
-          `[*] Spawning static parser thread (pefile & Shannon entropy analyzers)...`
-        ]);
-        setScanProgress(40);
-        results = await api.analysis.getResults(uploadResult.task_id);
+
+        // If server returned a "Local_Engine" signal (413 or explicit fallback), dissect locally
+        if (uploadResult.status === "Local_Engine") {
+          setScanLogs(prev => [
+            ...prev,
+            `[!] Notice: File payload size exceeds serverless body cap. Switching to local engine...`,
+            `[+] Spawning Client-Side ArrayBuffer Static Dissection Engine...`,
+            `[*] Computing cryptographic SHA-256 checksum & Shannon entropy across binary slices...`
+          ]);
+          setScanProgress(40);
+          results = await dissectFileLocally(selectedFile);
+        } else {
+          setScanLogs(prev => [
+            ...prev, 
+            `[+] Payload received by server. Task ID generated: ${uploadResult.task_id.substring(0, 16)}...`,
+            `[*] Spawning static parser thread (pefile & Shannon entropy analyzers)...`
+          ]);
+          setScanProgress(40);
+          results = await api.analysis.getResults(uploadResult.task_id);
+        }
       } catch (uploadErr: any) {
         setScanLogs(prev => [
           ...prev,
@@ -533,7 +530,7 @@ function App() {
         });
         fetchHistory();
         fetchDashboardStats();
-        generateAiReport(results.id);
+        generateAiReport(results.id, results);
       }, 400);
 
     } catch (err: any) {
@@ -559,8 +556,10 @@ function App() {
   };
 
   // AI Diagnostic Generator using api.ts AI explain service
-  const generateAiReport = async (reportHash: string) => {
+  // `reportObj` is passed in directly after a scan so we don't rely on selectedReport state
+  const generateAiReport = async (reportHash: string, reportObj?: AnalysisReport | null) => {
     setIsGeneratingAi(true);
+    const report = reportObj ?? selectedReport;
     try {
       const data = await api.ai.explainReport(reportHash);
       setAiExplanation(data.explanation);
@@ -568,7 +567,7 @@ function App() {
       setChatMessages([
         {
           sender: "ai",
-          text: `Telemetry report generated. I have resolved the heuristic and structural patterns for **${selectedReport?.filename}** (Threat score: ${selectedReport?.risk_score}/100). Ask me anything regarding the threat tactics or DLL imports.`,
+          text: `Telemetry report generated. I have resolved the heuristic and structural patterns for **${report?.filename ?? reportHash.slice(0, 12)}** (Threat score: ${report?.risk_score ?? "?"}/100). Ask me anything regarding the threat tactics or DLL imports.`,
           timestamp: new Date().toLocaleTimeString()
         }
       ]);
@@ -1393,6 +1392,7 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
                       type="file" 
                       ref={fileInputRef} 
                       onChange={handleFileChange}
+                      accept=".exe,.dll,.sys,.scr,.pdf,.zip,.gz,.7z,.class,.py,.js,.sh,.ps1,.bat,.vbs"
                       style={{ display: "none" }}
                     />
                     
@@ -1408,6 +1408,7 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
                         <div>
                           <h4 className="font-semibold">Drag and drop a file here</h4>
                           <p className="text-secondary text-sm mt-1">or click to browse your device</p>
+                          <p className="text-muted text-xs mt-3 font-mono">Supported: EXE · DLL · PDF · ZIP · 7Z · ELF · PS1 · PY · JS · SH</p>
                         </div>
                       )}
                     </div>
@@ -1415,7 +1416,10 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
 
                   {file && !isScanning && (
                     <div className="text-center mt-6">
-                      <button className="btn-primary px-8 py-3" onClick={() => startScan(file)}>
+                      <button 
+                        className="btn-primary px-8 py-3" 
+                        onClick={(e) => { e.stopPropagation(); startScan(file); }}
+                      >
                         🚀 Initialize Dissect Scan
                       </button>
                     </div>

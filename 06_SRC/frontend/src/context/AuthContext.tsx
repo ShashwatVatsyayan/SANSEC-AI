@@ -50,21 +50,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Sync profile details on load
   const syncProfile = useCallback(async () => {
-    const accessToken = tokenManager.getAccessToken();
-    if (accessToken) {
-      try {
-        const profile = await api.auth.me();
-        setUser(profile);
-      } catch (err) {
-        console.warn("Access token invalid or expired. Executing refresh token handshake...");
-        const refreshed = await refreshSession();
-        if (!refreshed) {
-          tokenManager.clearTokens();
-          setUser(null);
+    try {
+      const accessToken = tokenManager.getAccessToken();
+      if (accessToken) {
+        try {
+          const profile = await api.auth.me();
+          setUser(profile);
+        } catch (err) {
+          console.warn("Access token invalid or expired. Executing refresh token handshake...");
+          const refreshed = await refreshSession();
+          if (!refreshed) {
+            tokenManager.clearTokens();
+            setUser(null);
+          }
         }
       }
+    } catch (err) {
+      console.error("Profile sync exception:", err);
+      tokenManager.clearTokens();
+      setUser(null);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, [refreshSession]);
 
   useEffect(() => {

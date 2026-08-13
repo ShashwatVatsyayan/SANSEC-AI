@@ -6,4 +6,8 @@ from pathlib import Path
 backend_dir = Path(__file__).parent.parent / "06_SRC" / "backend"
 sys.path.insert(0, str(backend_dir))
 
-from main import app
+# Set SANSEC_CORS_ORIGINS to allow Vercel deployment domain(s)
+if not os.getenv("SANSEC_CORS_ORIGINS"):
+    os.environ["SANSEC_CORS_ORIGINS"] = "*"
+
+from main import app  # noqa: F401 – Vercel ASGI handler picks up `app`

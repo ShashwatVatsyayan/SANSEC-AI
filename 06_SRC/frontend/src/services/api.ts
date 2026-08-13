@@ -58,7 +58,7 @@ export interface AnalysisReport {
   hashes: Hashes;
   file_type: string;
   entropy: number;
-  strings: string[];
+  strings?: string[];
   pe_info: PEInfo;
   iocs: IOCs;
   signatures: SignatureMatch[];
@@ -150,7 +150,10 @@ export const rememberedCredentialsManager = {
   }
 };
 
-async function apiFetch(endpoint: string, options: RequestInit & { noAuth?: boolean } = {}) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ApiFetchOptions = Omit<RequestInit, "body"> & { noAuth?: boolean; body?: BodyInit | Record<string, any> | null };
+
+async function apiFetch(endpoint: string, options: ApiFetchOptions = {}) {
   const accessToken = tokenManager.getAccessToken();
   const headers: Record<string, string> = {
     ...options.headers as Record<string, string>
@@ -160,20 +163,22 @@ async function apiFetch(endpoint: string, options: RequestInit & { noAuth?: bool
     headers["Authorization"] = `Bearer ${accessToken}`;
   }
 
+  let body: BodyInit | null | undefined = options.body as BodyInit | null | undefined;
   if (options.body && !(options.body instanceof FormData) && typeof options.body === "object") {
     headers["Content-Type"] = "application/json";
-    options.body = JSON.stringify(options.body);
+    body = JSON.stringify(options.body);
   }
 
   const url = `${BASE_URL}${endpoint}`;
+  const fetchOptions: RequestInit = { ...options, headers, body };
   try {
-    const response = await fetch(url, { ...options, headers });
+    const response = await fetch(url, fetchOptions);
     
     if (response.status === 401 && tokenManager.getRefreshToken()) {
       const refreshed = await apiRefreshTokens();
       if (refreshed) {
         headers["Authorization"] = `Bearer ${tokenManager.getAccessToken()}`;
-        return fetch(url, { ...options, headers });
+        return fetch(url, fetchOptions);
       }
     }
     
@@ -383,32 +388,36 @@ export const api = {
     upload: async (file: File): Promise<any> => {
       const formData = new FormData();
       formData.append("file", file);
-      
+
+      let res: Response;
       try {
-        const res = await apiFetch("/api/files/upload", {
+        res = await apiFetch("/api/files/upload", {
           method: "POST",
           body: formData
         });
-        if (res.ok) return await res.json();
-      } catch (e) {}
-      
-      return {
-        task_id: "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca545b",
-        status: "Processing",
-        message: "Static parsing task spawned successfully."
-      };
+      } catch (networkErr) {
+        // True network failure (CORS, no connection) – bubble up
+        throw networkErr;
+      }
+
+      if (res.ok) return await res.json();
+
+      // Surface real HTTP errors (400 = invalid file, 401 = auth, 413 = too large)
+      const errMsg = await responseMessage(res, `Upload failed with HTTP ${res.status}.`);
+      throw new Error(errMsg);
     },
 
     uploadSync: async (file: File): Promise<AnalysisReport> => {
       const formData = new FormData();
       formData.append("file", file);
-      
+
       const res = await apiFetch("/api/upload", {
         method: "POST",
         body: formData
       });
       if (res.ok) return await res.json();
-      throw new Error("Synchronous upload file parsing failed.");
+      const errMsg = await responseMessage(res, "Synchronous upload file parsing failed.");
+      throw new Error(errMsg);
     }
   },
 

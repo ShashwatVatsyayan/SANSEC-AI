@@ -1,8 +1,12 @@
 import logging
 import os
+import sys
 import urllib.parse
 from typing import Any, Protocol
 from datetime import UTC, datetime
+
+from dotenv import load_dotenv
+load_dotenv()
 
 from motor.motor_asyncio import AsyncIOMotorClient
 from app.services.analyzer import to_history_item
@@ -300,10 +304,11 @@ class MongoLogsRepository:
 
 import sys
 
-# Detect if running in a unit/integration test environment
+# Detect if running in a unit/integration test environment or in-memory mode
 IS_TESTING = (
     os.getenv("TESTING") == "true" or
     os.getenv("SANSEC_ENV") == "test" or
+    os.getenv("SANSEC_USE_IN_MEMORY") == "true" or
     "pytest" in sys.modules or
     "unittest" in sys.modules or
     any("test" in arg for arg in sys.argv)

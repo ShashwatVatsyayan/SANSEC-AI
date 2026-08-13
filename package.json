@@ -1,0 +1,11 @@
+{
+  "name": "sansec-ai-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SANSEC AI — Malware Analysis Workspace & Heuristic Static Engine",
+  "scripts": {
+    "build": "cd 06_SRC/frontend && npm install && npm run build",
+    "dev": "cd 06_SRC/frontend && npm run dev",
+    "preview": "cd 06_SRC/frontend && npm run preview"
+  }
+}

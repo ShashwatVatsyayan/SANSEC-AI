@@ -30,6 +30,7 @@ import "./App.css";
 // Import API client and Types
 import { 
   api, 
+  BASE_URL,
   tokenManager, 
   AnalysisReport, 
   HistoryItem, 
@@ -261,7 +262,7 @@ function App() {
         });
 
         xhr.addEventListener("error", () => reject(new Error("Connection error during upload.")));
-        xhr.open("POST", "http://localhost:8000/api/files/upload");
+        xhr.open("POST", `${BASE_URL}/api/files/upload`);
         
         const token = tokenManager.getAccessToken();
         if (token) {

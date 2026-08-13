@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "buildCommand": "cd 06_SRC/frontend && npm install && npm run build",
+  "outputDirectory": "06_SRC/frontend/dist",
+  "framework": "vite",
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

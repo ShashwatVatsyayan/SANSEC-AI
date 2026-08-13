@@ -55,13 +55,15 @@ class ContractBehaviorTests(unittest.TestCase):
         self.user = {"sub": "admin", "role": "Admin"}
 
     def test_auth_contract_shapes(self):
-        register = main.register_user(main.UserRegisterRequest(username="analyst_contract", email="a@sansec.ai", password="password123"))
-        self.assertEqual(set(register), {"id", "username", "email", "role", "created_at"})
+        async def run():
+            register = await main.register_user(main.UserRegisterRequest(username="analyst_contract", email="a@sansec.ai", password="password123"))
+            self.assertEqual(set(register), {"id", "username", "email", "role", "created_at"})
 
-        login = main.login_user(main.UserLoginRequest(username="admin", password="sansec2026"))
-        self.assertEqual(set(login), {"access_token", "refresh_token", "token_type"})
-        refreshed = main.refresh_auth_token({"refresh_token": login["refresh_token"]})
-        self.assertEqual(set(refreshed), {"access_token", "refresh_token", "token_type"})
+            login = await main.login_user(main.UserLoginRequest(username="admin", password="sansec2026"))
+            self.assertEqual(set(login), {"access_token", "refresh_token", "token_type"})
+            refreshed = await main.refresh_auth_token({"refresh_token": login["refresh_token"]})
+            self.assertEqual(set(refreshed), {"access_token", "refresh_token", "token_type"})
+        asyncio.run(run())
 
     def test_upload_analysis_history_ai_and_reports(self):
         async def run():
@@ -73,40 +75,44 @@ class ContractBehaviorTests(unittest.TestCase):
             self.assertTrue(required_fields.issubset(set(report)), f"Missing required fields: {required_fields - set(report)}")
             self.assertEqual(report["filename"], "sample.txt")
 
-            status = main.get_analysis_status(report["id"], self.user)
+            status = await main.get_analysis_status(report["id"], self.user)
             self.assertEqual(set(status), {"task_id", "status", "progress", "error_details"})
 
-            history = main.get_history_logs(page=1, limit=20, _user=self.user)
+            history = await main.get_history_logs(page=1, limit=20, _user=self.user)
             self.assertTrue(history)
 
-            explanation = main.explain_report_with_ai(main.AIExplainRequest(file_hash=report["id"]), self.user)
+            explanation = await main.explain_report_with_ai(main.AIExplainRequest(file_hash=report["id"]), self.user)
             self.assertEqual(set(explanation), {"file_hash", "explanation"})
 
-            chat = main.ask_ai_translator(main.AIChatRequest(file_hash=report["id"], message="Explain risk."), self.user)
+            chat = await main.ask_ai_translator(main.AIChatRequest(file_hash=report["id"], message="Explain risk."), self.user)
             self.assertEqual(set(chat), {"reply", "timestamp"})
 
-            reports = main.list_reports(self.user)
+            reports = await main.list_reports(self.user)
             self.assertTrue(reports)
             self.assertEqual(set(reports[0]), {"id", "filename", "created_at", "created_by"})
 
-            report_doc = main.get_report_document(reports[0]["id"], self.user)
+            report_doc = await main.get_report_document(reports[0]["id"], self.user)
             self.assertEqual(set(report_doc), {"id", "filename", "created_at", "created_by"})
 
-            export_res = main.export_report_document(reports[0]["id"], "pdf", self.user)
+            export_res = await main.export_report_document(reports[0]["id"], "pdf", self.user)
             self.assertEqual(export_res.media_type, "application/pdf")
             self.assertGreater(len(export_res.body), 0)
 
         asyncio.run(run())
 
     def test_protected_dependency_rejects_missing_token(self):
-        with self.assertRaises(HTTPException) as ctx:
-            main.current_user(None)
-        self.assertEqual(ctx.exception.status_code, 401)
+        async def run():
+            with self.assertRaises(HTTPException) as ctx:
+                await main.current_user(None)
+            self.assertEqual(ctx.exception.status_code, 401)
+        asyncio.run(run())
 
     def test_bearer_dependency_accepts_token(self):
-        token = create_access_token("admin", "Admin", "access")
-        payload = main.current_user(f"Bearer {token}")
-        self.assertEqual(payload["sub"], "admin")
+        async def run():
+            token = create_access_token("admin", "Admin", "access")
+            payload = await main.current_user(f"Bearer {token}")
+            self.assertEqual(payload["sub"], "admin")
+        asyncio.run(run())
 
 
 if __name__ == "__main__":

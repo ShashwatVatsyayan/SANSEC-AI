@@ -92,7 +92,7 @@ export interface UserResponse {
   created_at: string;
 }
 
-const BASE_URL = "http://localhost:8000";
+export const BASE_URL = import.meta.env.VITE_API_URL !== undefined ? import.meta.env.VITE_API_URL : "http://localhost:8000";
 
 export const tokenManager = {
   getAccessToken: () => localStorage.getItem("sansec_access_token"),

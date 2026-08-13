@@ -209,6 +209,7 @@ class SecureUploadTests(unittest.TestCase):
 
     def test_duplicate_detection(self):
         import main
+        import asyncio
         
         content = b"MZ\x90\x00\x03\x00\x00\x00 dummy payload"
         filename = "dup_test.exe"
@@ -217,11 +218,11 @@ class SecureUploadTests(unittest.TestCase):
         main.workspace_settings["automatic_virustotal_lookup"] = False
         
         # First save
-        report1 = main.save_report_for_content(content, filename)
+        report1 = asyncio.run(main.save_report_for_content(content, filename))
         self.assertIsNotNone(report1)
         
         # Second save (should hit duplicate check early)
-        report2 = main.save_report_for_content(content, filename)
+        report2 = asyncio.run(main.save_report_for_content(content, filename))
         self.assertEqual(report1["id"], report2["id"])
         self.assertEqual(report1["timestamp"], report2["timestamp"])
 

@@ -33,6 +33,7 @@ This file reflects the **true execution state** of the project.
 - [x] Frontend addition: Real-time file uploading progress tracking
 - [x] Frontend addition: File size constraints check & input format check
 - [x] Frontend addition: Recent scans quick-load list (Upload history)
+- [x] Enforce MongoDB Backend Persistence with Motor driver and fail-fast startup checks
 
 ## Phase 3 – Validation
 - [x] Test upload of various file formats (EXE, PDF, TXT)

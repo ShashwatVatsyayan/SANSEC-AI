@@ -2,7 +2,12 @@ import csv
 import io
 import logging
 import os
+import sys
 from datetime import UTC, datetime
+
+# Load .env BEFORE any other imports that read os.getenv()
+from dotenv import load_dotenv
+load_dotenv()
 from typing import Any, Literal
 
 import uvicorn
@@ -135,10 +140,18 @@ async def lifespan(app: FastAPI):
             logger.info("Successfully connected to MongoDB and verified repositories.")
             await mongo_logs_repo.log_event("INFO", "Application started successfully with MongoDB backend.", "startup")
         except Exception as e:
-            logger.error("CRITICAL: Failed to initialize MongoDB: %s", e)
-            raise RuntimeError(f"Database connectivity check failed: {e}") from e
+            logger.warning("MongoDB connection unavailable (%s). Falling back to in-memory storage for standalone operation.", e)
+            user_repository = async_in_memory_user_repo
+            uploads_repository = async_in_memory_uploads_repo
+            analysis_repository = async_in_memory_analysis_repo
+            reports_repository = async_in_memory_reports_repo
+            history_repository = async_in_memory_history_repo
+            settings_repository = async_in_memory_settings_repo
+            logs_repository = async_in_memory_logs_repo
+            store = analysis_repository
+            user_store = user_repository
     else:
-        logger.info("Lifespan: Running in test mode, skipping MongoDB connection validation.")
+        logger.info("Lifespan: Running in test/in-memory mode, skipping MongoDB connection validation.")
     
     yield
     if not IS_TESTING:

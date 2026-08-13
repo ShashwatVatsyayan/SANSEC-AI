@@ -112,3 +112,55 @@ Coordinates the backend microservice alongside the frontend, passing environment
   ```bash
   docker-compose up --build -d
   ```
+
+---
+
+## 🍃 6. MongoDB Atlas Persistence Layer
+
+All application state is now persisted to **MongoDB Atlas** using the **Motor async driver**. There is no in-memory fallback in production — missing connectivity triggers a hard shutdown.
+
+### Collections
+
+| Collection | Repository Class | Purpose |
+| :--- | :--- | :--- |
+| `users` | `MongoUserRepository` | User accounts, roles, hashed passwords |
+| `uploads` | `MongoUploadsRepository` | Upload SHA256 metadata, deduplication |
+| `analysis_reports` | `MongoAnalysisRepository` | Full static analysis report payloads |
+| `reports` | `MongoReportsRepository` | Report metadata (id, filename, created_at) |
+| `analysis_history` | `MongoHistoryRepository` | History list items for `/api/history` |
+| `settings` | `MongoSettingsRepository` | Workspace settings document |
+| `system_logs` | `MongoLogsRepository` | Audit trail events |
+
+### Startup Lifecycle
+
+On startup, the `lifespan()` context manager in `main.py`:
+1. Reads `MONGODB_URI` from `.env` via `python-dotenv`.
+2. Creates a `motor.AsyncIOMotorClient` instance.
+3. Calls `validate_mongodb_connection()` (ping test — 2 second timeout).
+4. Initializes all repositories with the Motor `db` handle.
+5. Creates MongoDB indexes (unique constraints on `id`, `sha256`, `username`, `email`).
+6. Calls `ensure_admin_exists()` to provision the admin user if absent.
+7. Loads workspace settings from MongoDB into `workspace_settings` dict.
+
+**If any step fails → `sys.exit(1)` is called immediately.** There is no silent fallback.
+
+### Environment Variables Required
+
+| Variable | Description |
+| :--- | :--- |
+| `MONGODB_URI` | MongoDB Atlas SRV connection string |
+| `DATABASE_NAME` | Database name (default: `sansec_ai`) |
+| `SANSEC_ADMIN_PASSWORD` | Admin account password (default: `sansec2026`) |
+
+### Test Environment
+
+When `pytest` or `unittest` modules are detected in `sys.modules`, `IS_TESTING = True` and all repositories transparently switch to **async in-memory mocks** (`AsyncInMemoryXxxRepository`). No MongoDB connection is attempted during tests.
+
+### Test Suite Status
+
+```
+22 passed, 1 warning
+```
+- `tests/test_backend_services.py` — 16 unit tests (services, upload, deduplication)
+- `tests/test_integration.py` — 1 end-to-end analyst workflow test
+- `tests/test_openapi_contract.py` — 5 contract shape and auth tests

@@ -114,9 +114,10 @@ class BackendIntegrationTests(unittest.TestCase):
         self.assertEqual(reports_list_resp.status_code, 200)
         reports = reports_list_resp.json()
         self.assertTrue(len(reports) > 0)
-        report_meta = reports[0]
+        expected_report_id = f"rep_{file_hash[:12]}"
+        report_meta = next((r for r in reports if r["id"] == expected_report_id), None)
+        self.assertIsNotNone(report_meta, f"Could not find report {expected_report_id} in {reports}")
         report_id = report_meta["id"]
-        self.assertEqual(report_id, f"rep_{file_hash[:12]}")
 
         # 11. Retrieve report document layout
         report_doc_resp = self.client.get(f"/api/reports/{report_id}", headers=headers)

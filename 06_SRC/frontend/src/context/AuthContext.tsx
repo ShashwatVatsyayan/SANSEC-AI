@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { api, tokenManager, UserResponse } from "../services/api.ts";
+import { api, BASE_URL, tokenManager, UserResponse } from "../services/api.ts";
 
 interface AuthContextType {
   user: UserResponse | null;
@@ -27,7 +27,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     try {
       // API call to POST /api/auth/refresh
-      const response = await fetch("http://localhost:8000/api/auth/refresh", {
+      const response = await fetch(`${BASE_URL}/api/auth/refresh`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ refresh_token: refreshToken })

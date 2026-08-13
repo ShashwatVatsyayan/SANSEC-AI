@@ -8,6 +8,7 @@ interface AuthContextType {
   loginGoogle: (email: string, name?: string) => Promise<void>;
   register: (username: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  updateUserAvatar: (avatarUrl: string | undefined) => void;
   refreshSession: () => Promise<boolean>;
   isAuthenticated: boolean;
 }
@@ -135,6 +136,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const updateUserAvatar = (avatarUrl: string | undefined) => {
+    const updated = tokenManager.updateUserProfile({ avatar_url: avatarUrl });
+    if (updated) {
+      setUser(updated);
+    }
+  };
+
   const value = {
     user,
     loading,
@@ -142,6 +150,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     loginGoogle,
     register,
     logout,
+    updateUserAvatar,
     refreshSession,
     isAuthenticated: !!user
   };

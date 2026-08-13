@@ -24,7 +24,15 @@ import {
   Sliders,
   ShieldCheck,
   Server,
-  Trash2
+  Trash2,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Menu,
+  X,
+  Camera,
+  Sparkles,
+  UserCheck,
+  ChevronDown
 } from "lucide-react";
 import "./App.css";
 
@@ -45,12 +53,19 @@ import { AuthPage } from "./components/AuthPage.tsx";
 
 function App() {
   // Authentication State via Context
-  const { isAuthenticated, user: currentUser, logout } = useAuth();
+  const { isAuthenticated, user: currentUser, logout, updateUserAvatar } = useAuth();
 
   // Navigation and Workspace State
   const [activeTab, setActiveTab] = useState<string>("dashboard");
   const [selectedReport, setSelectedReport] = useState<AnalysisReport | null>(null);
   
+  // Sidebar & Topbar UI State
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
+    return localStorage.getItem("sansec_sidebar_collapsed") === "true";
+  });
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
+  const [showProfileDropdown, setShowProfileDropdown] = useState<boolean>(false);
+
   // Scanner state
   const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState<boolean>(false);
@@ -94,8 +109,38 @@ function App() {
   });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileInputAvatarRef = useRef<HTMLInputElement>(null);
   const logTerminalEndRef = useRef<HTMLDivElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
+
+  const toggleSidebar = () => {
+    setIsSidebarCollapsed(prev => {
+      const next = !prev;
+      localStorage.setItem("sansec_sidebar_collapsed", String(next));
+      return next;
+    });
+  };
+
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const uploaded = e.target.files?.[0];
+    if (!uploaded) return;
+    if (uploaded.size > 3 * 1024 * 1024) {
+      alert("Profile picture size should be smaller than 3MB.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64 = event.target?.result as string;
+      if (base64) {
+        updateUserAvatar(base64);
+      }
+    };
+    reader.readAsDataURL(uploaded);
+  };
+
+  const handleRemoveAvatar = () => {
+    updateUserAvatar(undefined);
+  };
 
   // Auto-scroll helpers
   useEffect(() => {
@@ -470,90 +515,213 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
 
   return (
     <div className="app-container">
+      {/* Hidden File Input for Profile Avatar Upload */}
+      <input 
+        type="file" 
+        ref={fileInputAvatarRef} 
+        accept="image/*" 
+        style={{ display: "none" }}
+        onChange={handleAvatarUpload}
+      />
+
       {/* Sidebar Navigation */}
-      <aside className="sidebar">
-        <div className="logo-section">
-          <Shield className="logo-shield" style={{ color: "var(--accent-gold)" }} />
-          <div>
-            <h1 className="logo-title">SANSEC <span className="gold-text">AI</span></h1>
-            <span className="logo-subtitle">OPERATIONS CONSOLE</span>
+      <aside className={`sidebar ${isSidebarCollapsed ? "collapsed" : ""} ${isMobileMenuOpen ? "mobile-open" : ""}`}>
+        <div className="logo-section flex items-center justify-between">
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => { setActiveTab("dashboard"); setSelectedReport(null); }}>
+            <Shield className="logo-shield" style={{ color: "var(--accent-gold)" }} />
+            {!isSidebarCollapsed && (
+              <div>
+                <h1 className="logo-title">SANSEC <span className="gold-text">AI</span></h1>
+                <span className="logo-subtitle">OPERATIONS CONSOLE</span>
+              </div>
+            )}
           </div>
+          <button 
+            onClick={toggleSidebar} 
+            className="sidebar-toggle-btn hidden md:flex" 
+            title={isSidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+          >
+            {isSidebarCollapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+          </button>
         </div>
 
         <nav className="nav-menu">
           <button 
             className={`nav-item ${activeTab === "dashboard" ? "active" : ""}`}
-            onClick={() => { setActiveTab("dashboard"); setSelectedReport(null); }}
+            onClick={() => { setActiveTab("dashboard"); setSelectedReport(null); setIsMobileMenuOpen(false); }}
+            title="Workspace Dashboard"
           >
-            📊 Workspace Dashboard
+            <TrendingUp size={18} />
+            {!isSidebarCollapsed && <span className="nav-item-label">Workspace Dashboard</span>}
           </button>
           <button 
             className={`nav-item ${activeTab === "scanner" ? "active" : ""}`}
-            onClick={() => setActiveTab("scanner")}
+            onClick={() => { setActiveTab("scanner"); setIsMobileMenuOpen(false); }}
+            title="Heuristic Scanner"
           >
-            🔍 Heuristic Scanner
+            <Cpu size={18} />
+            {!isSidebarCollapsed && <span className="nav-item-label">Heuristic Scanner</span>}
           </button>
           <button 
             className={`nav-item ${activeTab === "analytics" ? "active" : ""}`}
-            onClick={() => setActiveTab("analytics")}
+            onClick={() => { setActiveTab("analytics"); setIsMobileMenuOpen(false); }}
+            title="Threat Analytics"
           >
-            📈 Threat Analytics
+            <FileCode size={18} />
+            {!isSidebarCollapsed && <span className="nav-item-label">Threat Analytics</span>}
           </button>
           <button 
             className={`nav-item ${activeTab === "history" ? "active" : ""}`}
-            onClick={() => setActiveTab("history")}
+            onClick={() => { setActiveTab("history"); setIsMobileMenuOpen(false); }}
+            title={`Scan Records (${history.length})`}
           >
-            🧾 Scan Records ({history.length})
-          </button>
-          <button 
-            className={`nav-item ${activeTab === "profile" ? "active" : ""}`}
-            onClick={() => setActiveTab("profile")}
-          >
-            👤 Analyst Profile
+            <HistIcon size={18} />
+            {!isSidebarCollapsed && <span className="nav-item-label">Scan Records ({history.length})</span>}
           </button>
           <button 
             className={`nav-item ${activeTab === "settings" ? "active" : ""}`}
-            onClick={() => setActiveTab("settings")}
+            onClick={() => { setActiveTab("settings"); setIsMobileMenuOpen(false); }}
+            title="System Settings"
           >
-            ⚙️ System Settings
+            <Settings size={18} />
+            {!isSidebarCollapsed && <span className="nav-item-label">System Settings</span>}
           </button>
           {currentUser?.role === "Admin" && (
             <button 
               className={`nav-item ${activeTab === "admin" ? "active" : ""}`}
-              onClick={() => setActiveTab("admin")}
+              onClick={() => { setActiveTab("admin"); setIsMobileMenuOpen(false); }}
+              title="Admin Registry"
             >
-              🛡️ Admin Registry
+              <ShieldCheck size={18} />
+              {!isSidebarCollapsed && <span className="nav-item-label">Admin Registry</span>}
             </button>
           )}
         </nav>
 
         <div className="sidebar-footer">
-          <div 
-            onClick={() => setActiveTab("profile")} 
-            className="flex items-center gap-2 mb-2 pb-2 border-b border-color cursor-pointer hover:text-gold transition-colors"
-            title="Click to view Analyst Profile"
-          >
-            <User size={14} className="text-gold" />
-            <span className="text-xs font-semibold mono">{currentUser?.username || "Analyst"} ({currentUser?.role || "User"})</span>
-          </div>
           <div className="status-indicator">
             <span className="status-dot online"></span>
-            <span>API GATEWAY: ONLINE</span>
+            <span>GATEWAY ONLINE</span>
           </div>
-          <div className="status-indicator">
-            <span className="status-dot warning"></span>
-            <span>AI ENGINE: READY</span>
-          </div>
-          
-          <button onClick={handleLogout} className="btn-logout">
+          <button onClick={handleLogout} className="btn-logout" title="Terminal Logout">
             <LogOut size={14} />
-            <span>Terminal Logout</span>
+            {!isSidebarCollapsed && <span className="sidebar-footer-text">Terminal Logout</span>}
           </button>
         </div>
       </aside>
 
       {/* Main Workspace Frame */}
       <main className="workspace-main">
+        {/* Top Header Bar */}
+        <header className="top-header-bar">
+          <div className="flex items-center gap-3">
+            {/* Mobile Menu Button */}
+            <button 
+              className="md:hidden sidebar-toggle-btn"
+              onClick={() => setIsMobileMenuOpen(prev => !prev)}
+            >
+              {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
+            <div className="flex items-center gap-2">
+              <Shield size={16} className="text-gold" />
+              <span className="text-xs font-bold uppercase tracking-wider text-secondary">
+                SANSEC AI / <span className="text-primary">{activeTab}</span>
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4 relative">
+            {/* System Status Pill */}
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span>GATEWAY ACTIVE</span>
+            </div>
+
+            {/* Top-Right Profile Avatar Pill */}
+            <button 
+              onClick={() => setShowProfileDropdown(prev => !prev)}
+              className="profile-pill-btn"
+              title="Open Analyst Account Menu"
+            >
+              {currentUser?.avatar_url ? (
+                <img src={currentUser.avatar_url} alt="Profile" className="profile-avatar-img" />
+              ) : (
+                <div className="profile-avatar-initials">
+                  {currentUser?.username ? currentUser.username.substring(0, 2).toUpperCase() : "AN"}
+                </div>
+              )}
+              <div className="hidden sm:flex flex-col text-left">
+                <span className="text-xs font-bold text-primary leading-tight">{currentUser?.username || "Analyst"}</span>
+                <span className="text-[10px] text-gold font-mono leading-tight">{currentUser?.role || "User"}</span>
+              </div>
+              <ChevronDown size={14} className="text-muted" />
+            </button>
+
+            {/* Top-Right Profile Dropdown Card */}
+            <AnimatePresence>
+              {showProfileDropdown && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  className="ios-profile-dropdown"
+                >
+                  <div className="flex items-center gap-3 pb-3 mb-3 border-b border-white/10">
+                    {currentUser?.avatar_url ? (
+                      <img src={currentUser.avatar_url} alt="Profile" className="w-10 h-10 rounded-full object-cover border border-gold" />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-gold/20 text-gold flex items-center justify-center font-bold text-sm border border-gold">
+                        {currentUser?.username ? currentUser.username.substring(0, 2).toUpperCase() : "AN"}
+                      </div>
+                    )}
+                    <div className="overflow-hidden">
+                      <h4 className="text-sm font-bold text-primary truncate">{currentUser?.username}</h4>
+                      <p className="text-xs text-secondary truncate">{currentUser?.email}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <button 
+                      onClick={() => { setActiveTab("profile"); setShowProfileDropdown(false); }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-primary hover:bg-gold/10 hover:text-gold transition-colors text-left cursor-pointer"
+                    >
+                      <User size={14} className="text-gold" />
+                      <span>👤 Open Analyst Profile</span>
+                    </button>
+
+                    <button 
+                      onClick={() => { fileInputAvatarRef.current?.click(); setShowProfileDropdown(false); }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-primary hover:bg-gold/10 hover:text-gold transition-colors text-left cursor-pointer"
+                    >
+                      <Camera size={14} className="text-teal" />
+                      <span>📷 Change Profile Picture</span>
+                    </button>
+
+                    {currentUser?.avatar_url && (
+                      <button 
+                        onClick={() => { handleRemoveAvatar(); setShowProfileDropdown(false); }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-red hover:bg-red/10 transition-colors text-left cursor-pointer"
+                      >
+                        <Trash2 size={14} className="text-red" />
+                        <span>🗑️ Remove Picture</span>
+                      </button>
+                    )}
+
+                    <div className="my-1 border-t border-white/10"></div>
+
+                    <button 
+                      onClick={() => { handleLogout(); setShowProfileDropdown(false); }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-red hover:bg-red/15 transition-colors text-left cursor-pointer"
+                    >
+                      <LogOut size={14} />
+                      <span>Sign Out Account</span>
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </header>
         <AnimatePresence mode="wait">
           {activeTab === "dashboard" && (
             <motion.div 
@@ -1547,7 +1715,7 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.3 }}
-              className="space-y-6"
+              className="space-y-6 max-w-5xl mx-auto"
             >
               <div className="topbar">
                 <div>
@@ -1556,97 +1724,124 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
                 </div>
               </div>
 
-              {/* Profile Card Header */}
-              <div className="glow-card p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-                <div className="flex items-center gap-5">
-                  <div className="w-16 h-16 rounded-2xl bg-gold/15 border border-gold/30 text-gold flex items-center justify-center font-bold text-2xl shadow-glow">
-                    {currentUser?.username ? currentUser.username.substring(0, 2).toUpperCase() : "AN"}
+              {/* iOS Glass Profile Hero Card */}
+              <div className="ios-glass-card p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                <div className="flex items-center gap-6">
+                  <div className="avatar-upload-box group relative">
+                    {currentUser?.avatar_url ? (
+                      <img src={currentUser.avatar_url} alt="Profile Avatar" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-gold/20 text-gold flex items-center justify-center font-bold text-3xl">
+                        {currentUser?.username ? currentUser.username.substring(0, 2).toUpperCase() : "AN"}
+                      </div>
+                    )}
+                    <button 
+                      onClick={() => fileInputAvatarRef.current?.click()}
+                      className="avatar-edit-overlay"
+                      title="Upload / Change Photo"
+                    >
+                      <Camera size={20} />
+                    </button>
                   </div>
-                  <div>
+
+                  <div className="space-y-1.5">
                     <div className="flex items-center gap-3">
-                      <h3 className="text-xl font-bold text-primary">{currentUser?.username || "Analyst Profile"}</h3>
+                      <h3 className="text-2xl font-extrabold text-primary">{currentUser?.username || "Analyst"}</h3>
                       <span className={`badge ${currentUser?.role === 'Admin' ? 'badge-critical' : 'badge-low'}`}>
                         {currentUser?.role || "Analyst"}
                       </span>
                       {currentUser?.auth_provider === "google" && (
-                        <span className="bg-blue-500/10 text-blue-400 border border-blue-500/20 text-xs px-2 py-0.5 rounded font-mono flex items-center gap-1">
-                          <Globe size={12} /> Google Account
+                        <span className="bg-blue-500/15 text-blue-400 border border-blue-500/30 text-xs px-2.5 py-0.5 rounded-full font-mono flex items-center gap-1">
+                          <Globe size={12} /> Google Workspace
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-secondary mt-1">{currentUser?.email || "analyst@sansec.ai"}</p>
-                    <p className="text-xs text-muted mono mt-1">ID: {currentUser?.id || "usr_default"}</p>
+                    <p className="text-sm text-secondary">{currentUser?.email || "analyst@sansec.ai"}</p>
+                    <p className="text-xs text-muted mono">Identity Scope: {currentUser?.id || "usr_default"}</p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <button onClick={handleLogout} className="btn-logout px-4 py-2 text-xs">
-                    <LogOut size={14} />
-                    Sign Out Account
+                <div className="flex flex-wrap items-center gap-3">
+                  <button 
+                    onClick={() => fileInputAvatarRef.current?.click()}
+                    className="btn-primary text-xs py-2 px-4 flex items-center gap-1.5 shadow-md cursor-pointer"
+                  >
+                    <Camera size={14} />
+                    <span>Upload Photo</span>
                   </button>
+
+                  {currentUser?.avatar_url && (
+                    <button 
+                      onClick={handleRemoveAvatar}
+                      className="btn-secondary text-xs py-2 px-4 text-red border-red/30 hover:bg-red/10 flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Trash2 size={14} />
+                      <span>Remove Photo</span>
+                    </button>
+                  )}
                 </div>
               </div>
 
-              {/* Profile Details Grid */}
+              {/* iOS Glass Cards Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Account Details Box */}
-                <div className="glow-card p-6 space-y-4">
-                  <h4 className="font-bold text-md border-b border-color pb-3 flex items-center gap-2">
-                    <User size={16} className="text-gold" />
-                    Account Security & Scope
+                {/* Account Credentials Glass Card */}
+                <div className="ios-glass-card p-6 space-y-4">
+                  <h4 className="font-bold text-md border-b border-white/10 pb-3 flex items-center gap-2 text-gold">
+                    <UserCheck size={18} />
+                    Identity & Access Scope
                   </h4>
                   
                   <div className="space-y-3 text-sm">
-                    <div className="flex justify-between py-2 border-b border-color">
-                      <span className="text-secondary">Identity Handle:</span>
+                    <div className="flex justify-between py-2 border-b border-white/5">
+                      <span className="text-secondary">Console Handle:</span>
                       <span className="font-semibold text-primary">{currentUser?.username}</span>
                     </div>
-                    <div className="flex justify-between py-2 border-b border-color">
-                      <span className="text-secondary">Email Scope:</span>
+                    <div className="flex justify-between py-2 border-b border-white/5">
+                      <span className="text-secondary">Email Address:</span>
                       <span className="font-semibold text-primary">{currentUser?.email}</span>
                     </div>
-                    <div className="flex justify-between py-2 border-b border-color">
-                      <span className="text-secondary">Auth Provider:</span>
-                      <span className="font-semibold text-gold capitalize">{currentUser?.auth_provider || "Local Password"}</span>
+                    <div className="flex justify-between py-2 border-b border-white/5">
+                      <span className="text-secondary">Authentication Provider:</span>
+                      <span className="font-semibold text-gold capitalize">{currentUser?.auth_provider || "Local Credentials"}</span>
                     </div>
-                    <div className="flex justify-between py-2 border-b border-color">
-                      <span className="text-secondary">Access Role:</span>
+                    <div className="flex justify-between py-2 border-b border-white/5">
+                      <span className="text-secondary">Permission Role:</span>
                       <span className="font-semibold text-teal-400">{currentUser?.role}</span>
                     </div>
                     <div className="flex justify-between py-2">
-                      <span className="text-secondary">Registered Date:</span>
+                      <span className="text-secondary">Registration Timestamp:</span>
                       <span className="font-mono text-xs text-muted">
-                        {currentUser?.created_at ? new Date(currentUser.created_at).toLocaleDateString() : "Active"}
+                        {currentUser?.created_at ? new Date(currentUser.created_at).toLocaleString() : "Active"}
                       </span>
                     </div>
                   </div>
                 </div>
 
-                {/* Session Security Box */}
-                <div className="glow-card p-6 space-y-4">
-                  <h4 className="font-bold text-md border-b border-color pb-3 flex items-center gap-2">
-                    <ShieldCheck size={16} className="text-teal" />
-                    Active Session Status
+                {/* Session Security Glass Card */}
+                <div className="ios-glass-card p-6 space-y-4">
+                  <h4 className="font-bold text-md border-b border-white/10 pb-3 flex items-center gap-2 text-teal">
+                    <ShieldCheck size={18} />
+                    Cryptographic Session Specs
                   </h4>
 
                   <div className="space-y-3 text-sm">
-                    <div className="flex justify-between py-2 border-b border-color">
+                    <div className="flex justify-between py-2 border-b border-white/5">
                       <span className="text-secondary">JWT Encryption:</span>
-                      <span className="font-mono text-xs text-teal-400">HMAC-SHA256 Signed</span>
+                      <span className="font-mono text-xs text-teal-400">HMAC-SHA256 Signed Handshake</span>
                     </div>
-                    <div className="flex justify-between py-2 border-b border-color">
-                      <span className="text-secondary">Session Refresh:</span>
-                      <span className="font-mono text-xs text-gold">Automated (10 min cycle)</span>
+                    <div className="flex justify-between py-2 border-b border-white/5">
+                      <span className="text-secondary">Automated Refresh Cycle:</span>
+                      <span className="font-mono text-xs text-gold">Active (10 min heartbeat)</span>
                     </div>
-                    <div className="flex justify-between py-2 border-b border-color">
-                      <span className="text-secondary">Total Scans Executed:</span>
-                      <span className="font-bold text-primary">{history.length} Scans</span>
+                    <div className="flex justify-between py-2 border-b border-white/5">
+                      <span className="text-secondary">Telemetry Scans Run:</span>
+                      <span className="font-bold text-primary">{history.length} Analysis Runs</span>
                     </div>
                     <div className="flex justify-between py-2">
-                      <span className="text-secondary">Gateway State:</span>
+                      <span className="text-secondary">API Gateway Health:</span>
                       <span className="font-semibold text-emerald-400 flex items-center gap-1.5">
                         <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                        Active & Connected
+                        Operational & Connected
                       </span>
                     </div>
                   </div>

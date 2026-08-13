@@ -107,6 +107,13 @@ export const tokenManager = {
   setUserProfile: (profile: UserResponse) => {
     localStorage.setItem("sansec_user_profile", JSON.stringify(profile));
   },
+  updateUserProfile: (updates: Partial<UserResponse>): UserResponse | null => {
+    const current = tokenManager.getUserProfile();
+    if (!current) return null;
+    const updated = { ...current, ...updates };
+    localStorage.setItem("sansec_user_profile", JSON.stringify(updated));
+    return updated;
+  },
   setTokens: (access: string, refresh: string) => {
     localStorage.setItem("sansec_access_token", access);
     localStorage.setItem("sansec_refresh_token", refresh);

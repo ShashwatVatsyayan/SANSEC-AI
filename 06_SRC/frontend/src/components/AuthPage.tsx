@@ -20,7 +20,7 @@ export const AuthPage: React.FC = () => {
   // Form Fields
   const [username, setUsername] = useState(savedCreds?.username || "");
   const [email, setEmail] = useState(savedCreds?.email || "");
-  const [password, setPassword] = useState("");
+  const [password, setPassword] = useState(savedCreds?.password || "");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [resetEmail, setResetEmail] = useState("");
 
@@ -50,7 +50,7 @@ export const AuthPage: React.FC = () => {
     try {
       await login(username, password);
       if (rememberMe) {
-        rememberedCredentialsManager.save(username, email);
+        rememberedCredentialsManager.save(username, email, password);
       }
     } catch (err: any) {
       setErrorMsg(err.message || "Invalid authentication credentials.");
@@ -272,7 +272,8 @@ export const AuthPage: React.FC = () => {
                   onClick={() => {
                     if (savedCreds.username) setUsername(savedCreds.username);
                     if (savedCreds.email) setEmail(savedCreds.email);
-                    setSuccessMsg(`Auto-filled saved identity: ${savedCreds.username}`);
+                    if (savedCreds.password) setPassword(savedCreds.password);
+                    setSuccessMsg(`Auto-filled saved credentials for: ${savedCreds.username}`);
                     setTimeout(() => setSuccessMsg(""), 3000);
                   }}
                   className="w-full mb-3 py-1.5 px-3 rounded-lg bg-gold/10 border border-gold/30 text-gold text-xs font-semibold flex items-center justify-center gap-1.5 hover:bg-gold/20 transition-all cursor-pointer"

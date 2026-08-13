@@ -126,13 +126,13 @@ export const tokenManager = {
 };
 
 export const rememberedCredentialsManager = {
-  getSaved: (): { username: string; email?: string } | null => {
+  getSaved: (): { username: string; email?: string; password?: string } | null => {
     const raw = localStorage.getItem("sansec_remembered_credentials");
     if (!raw) return null;
     try { return JSON.parse(raw); } catch (e) { return null; }
   },
-  save: (username: string, email?: string) => {
-    localStorage.setItem("sansec_remembered_credentials", JSON.stringify({ username, email }));
+  save: (username: string, email?: string, password?: string) => {
+    localStorage.setItem("sansec_remembered_credentials", JSON.stringify({ username, email, password }));
   },
   clear: () => {
     localStorage.removeItem("sansec_remembered_credentials");

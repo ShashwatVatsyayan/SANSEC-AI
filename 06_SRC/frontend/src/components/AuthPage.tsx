@@ -147,6 +147,79 @@ export const AuthPage: React.FC = () => {
     }
   };
 
+  // Triggers native browser Google Account Chooser popup
+  const triggerNativeGoogleSignIn = () => {
+    setErrorMsg("");
+    setLoading(true);
+
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "234218870563-2q5u309iguo2qf311s0nues60cpfi459.apps.googleusercontent.com";
+
+    // 1. Check if Google Identity Services (GIS) library is loaded
+    if ((window as any).google?.accounts?.oauth2) {
+      try {
+        const client = (window as any).google.accounts.oauth2.initTokenClient({
+          client_id: clientId,
+          scope: "email profile openid",
+          prompt: "select_account",
+          callback: async (tokenResponse: any) => {
+            if (tokenResponse && tokenResponse.access_token) {
+              try {
+                const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+                  headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
+                });
+                if (res.ok) {
+                  const googleUser = await res.json();
+                  if (googleUser && googleUser.email) {
+                    await executeGoogleAuth(googleUser.email, googleUser.name);
+                    return;
+                  }
+                }
+              } catch (e) {
+                console.error("Google userinfo API failed:", e);
+              }
+            }
+            setLoading(false);
+          },
+          error_callback: () => {
+            setLoading(false);
+            setShowGoogleModal(true);
+          }
+        });
+        client.requestAccessToken({ prompt: "select_account" });
+        return;
+      } catch (err) {
+        console.warn("GIS token client failed:", err);
+      }
+    }
+
+    // 2. Direct Popup window to Google OAuth Account Chooser
+    const redirectUri = window.location.origin;
+    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(clientId)}&response_type=token&scope=email%20profile%20openid&prompt=select_account&redirect_uri=${encodeURIComponent(redirectUri)}`;
+
+    const width = 500;
+    const height = 600;
+    const left = window.screen.width / 2 - width / 2;
+    const top = window.screen.height / 2 - height / 2;
+
+    const popup = window.open(
+      authUrl,
+      "GoogleAccountChooser",
+      `width=${width},height=${height},top=${top},left=${left},scrollbars=yes,resizable=yes`
+    );
+
+    if (!popup || popup.closed || typeof popup.closed === "undefined") {
+      setLoading(false);
+      setShowGoogleModal(true);
+    } else {
+      const checkPopup = setInterval(() => {
+        if (!popup || popup.closed) {
+          clearInterval(checkPopup);
+          setLoading(false);
+        }
+      }, 1000);
+    }
+  };
+
   return (
     <div className="login-screen-container">
       <motion.div 
@@ -232,9 +305,9 @@ export const AuthPage: React.FC = () => {
 
               <button 
                 type="button" 
-                onClick={() => { setErrorMsg(""); setShowGoogleModal(true); }} 
+                onClick={triggerNativeGoogleSignIn} 
                 disabled={loading} 
-                className="btn-secondary w-full flex items-center justify-center gap-2"
+                className="btn-secondary w-full flex items-center justify-center gap-2 hover:border-gold transition-all cursor-pointer"
                 style={{ padding: '12px', fontSize: '0.85rem' }}
               >
                 <Globe size={14} className="text-gold" />
@@ -454,11 +527,22 @@ export const AuthPage: React.FC = () => {
                 </button>
               </div>
 
-              <p className="text-xs text-secondary mb-4">
-                Enter your Google Workspace account email to verify and sign in to SANSEC AI:
+              <p className="text-xs text-secondary mb-3">
+                Select an account already signed in on your browser or enter your Google Workspace email address:
               </p>
 
-              {/* Custom Google Account Form */}
+              <button 
+                type="button" 
+                onClick={triggerNativeGoogleSignIn} 
+                className="btn-primary w-full py-2.5 text-xs flex items-center justify-center gap-2 mb-4 bg-gold text-black font-bold hover:brightness-110 cursor-pointer shadow-md"
+              >
+                <Globe size={16} />
+                <span>Select from Browser Google Accounts</span>
+              </button>
+
+              <div className="oauth-separator mb-4">
+                <span>OR ENTER EMAIL MANUALLY</span>
+              </div>
               <form onSubmit={(e) => { e.preventDefault(); executeGoogleAuth(customGoogleEmail, customGoogleName); }} className="flex flex-col gap-3">
                 <div className="form-group">
                   <label className="text-xs font-semibold">Google Workspace Email Address</label>

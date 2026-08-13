@@ -802,7 +802,9 @@ async def get_settings(_user: dict[str, Any] = Depends(current_user)):
 
 
 @app.put("/api/settings")
-async def update_settings(request: WorkspaceSettings, _user: dict[str, Any] = Depends(current_user)):
+async def update_settings(request: WorkspaceSettings, user: dict[str, Any] = Depends(current_user)):
+    if user.get("role") not in ("Admin", "Analyst"):
+        raise HTTPException(status_code=403, detail="Administrative permissions required.")
     updated = await settings_repository.update_settings(request.model_dump())
     workspace_settings.update(updated)
     return workspace_settings

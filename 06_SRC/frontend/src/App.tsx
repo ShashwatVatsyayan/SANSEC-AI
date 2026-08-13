@@ -1641,13 +1641,20 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
               </div>
 
               <div className="glow-card max-w-2xl">
+                {currentUser?.role !== "Admin" && (
+                  <div className="mb-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center gap-2.5 text-xs text-amber-400 font-mono">
+                    <Shield size={16} className="flex-shrink-0" />
+                    <span>Read-Only System Policy: Only Administrators can modify upload file size constraints and system parameters.</span>
+                  </div>
+                )}
                 <form onSubmit={handleUpdateSettings} className="flex flex-col gap-6">
                   <div className="form-group">
                     <label className="flex items-center gap-2"><Bot size={14} /> Active Generative AI Explainer Model</label>
                     <select 
                       value={workspaceSettings.active_ai_model}
+                      disabled={currentUser?.role !== "Admin"}
                       onChange={(e) => setWorkspaceSettings(prev => ({ ...prev, active_ai_model: e.target.value }))}
-                      className="login-input bg-[#12141a]"
+                      className="login-input bg-[#12141a] disabled:opacity-60 disabled:cursor-not-allowed"
                     >
                       <option value="gemini-1.5-pro">Gemini 1.5 Pro (Deep reasoning)</option>
                       <option value="gemini-1.5-flash">Gemini 1.5 Flash (Latency-optimized)</option>
@@ -1656,12 +1663,18 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
                   </div>
 
                   <div className="form-group">
-                    <label className="flex items-center gap-2"><Sliders size={14} /> Max File Upload Size Constraint (MB)</label>
+                    <div className="flex justify-between items-center mb-1">
+                      <label className="flex items-center gap-2"><Sliders size={14} /> Max File Upload Size Constraint (MB)</label>
+                      {currentUser?.role !== "Admin" && (
+                        <span className="text-[10px] font-mono text-muted uppercase tracking-wider">Admin Policy Locked</span>
+                      )}
+                    </div>
                     <input 
                       type="number"
                       value={workspaceSettings.max_file_size_mb}
-                      onChange={(e) => setWorkspaceSettings(prev => ({ ...prev, max_file_size_mb: parseInt(e.target.value) || 50 }))}
-                      className="login-input"
+                      disabled={currentUser?.role !== "Admin"}
+                      onChange={(e) => setWorkspaceSettings(prev => ({ ...prev, max_file_size_mb: parseInt(e.target.value) || 5000 }))}
+                      className="login-input disabled:opacity-60 disabled:cursor-not-allowed"
                     />
                   </div>
 
@@ -1673,14 +1686,21 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
                     <input 
                       type="checkbox"
                       checked={workspaceSettings.automatic_virustotal_lookup}
+                      disabled={currentUser?.role !== "Admin"}
                       onChange={(e) => setWorkspaceSettings(prev => ({ ...prev, automatic_virustotal_lookup: e.target.checked }))}
-                      className="w-5 h-5 accent-yellow-500 cursor-pointer"
+                      className="w-5 h-5 accent-yellow-500 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                   </div>
 
-                  <button type="submit" className="btn-primary self-start px-8 mt-2">
-                    Save System Parameters
-                  </button>
+                  {currentUser?.role === "Admin" ? (
+                    <button type="submit" className="btn-primary self-start px-8 mt-2 cursor-pointer">
+                      Save System Parameters
+                    </button>
+                  ) : (
+                    <div className="text-xs font-mono text-muted py-2">
+                      🔒 Log in as an Admin user to edit system parameters.
+                    </div>
+                  )}
                 </form>
               </div>
             </motion.div>

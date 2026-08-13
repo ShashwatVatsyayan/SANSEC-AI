@@ -37,13 +37,30 @@
   display: block;
 }
 
+.app-container {
+  position: relative;
+  z-index: 1;
+}
+
+.workspace-main {
+  position: relative;
+  z-index: 10;
+}
+
+.login-card {
+  position: relative;
+  z-index: 10;
+}
+
 .gold-text {
   color: var(--accent-gold);
 }
 
 /* iOS Glassmorphism Theme Utilities */
 .ios-glass-card {
-  background: rgba(18, 24, 38, 0.65) !important;
+  position: relative;
+  z-index: 10;
+  background: rgba(18, 24, 38, 0.75) !important;
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   border: 1px solid rgba(255, 255, 255, 0.08) !important;

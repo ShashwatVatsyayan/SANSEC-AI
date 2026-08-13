@@ -66,8 +66,7 @@ export const BlackHoleBackground: React.FC = () => {
 
     const render = () => {
       time += 0.008;
-      ctx.fillStyle = "rgba(5, 7, 14, 0.35)";
-      ctx.fillRect(0, 0, width, height);
+      ctx.clearRect(0, 0, width, height);
 
       const cx = centerX();
       const cy = centerY();

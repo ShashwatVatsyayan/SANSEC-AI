@@ -528,7 +528,7 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
 
       {/* Sidebar Navigation */}
       <aside className={`sidebar ${isSidebarCollapsed ? "collapsed" : ""} ${isMobileMenuOpen ? "mobile-open" : ""}`}>
-        <div className="logo-section flex items-center justify-between">
+        <div className="logo-section flex items-center gap-3">
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => { setActiveTab("dashboard"); setSelectedReport(null); }}>
             <Shield className="logo-shield" style={{ color: "var(--accent-gold)" }} />
             {!isSidebarCollapsed && (
@@ -538,13 +538,6 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
               </div>
             )}
           </div>
-          <button 
-            onClick={toggleSidebar} 
-            className="sidebar-toggle-btn hidden md:flex" 
-            title={isSidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
-          >
-            {isSidebarCollapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
-          </button>
         </div>
 
         <nav className="nav-menu">
@@ -617,12 +610,19 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
         {/* Top Header Bar */}
         <header className="top-header-bar">
           <div className="flex items-center gap-3">
-            {/* Mobile Menu Button */}
+            {/* Unified Sidebar Toggle Button */}
             <button 
-              className="md:hidden sidebar-toggle-btn"
-              onClick={() => setIsMobileMenuOpen(prev => !prev)}
+              className="sidebar-toggle-btn cursor-pointer"
+              onClick={() => {
+                if (window.innerWidth < 768) {
+                  setIsMobileMenuOpen(prev => !prev);
+                } else {
+                  toggleSidebar();
+                }
+              }}
+              title={isSidebarCollapsed ? "Expand Navigation Sidebar" : "Collapse Navigation Sidebar"}
             >
-              {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+              {isSidebarCollapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
             </button>
             <div className="flex items-center gap-2">
               <Shield size={16} className="text-gold" />

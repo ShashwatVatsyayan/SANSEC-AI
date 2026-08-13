@@ -418,6 +418,8 @@ function App() {
 
     } catch (err: any) {
       console.error(err);
+      setScanLogs(prev => [...prev, `[ERROR] Scan failed: ${err.message || "Unable to reach the analysis service."}`]);
+      setScanProgress(0);
       setIsScanning(false);
     }
   };
@@ -1253,8 +1255,8 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
                 <div className="scanner-container">
                   <div className="topbar">
                     <div>
-                      <h2>Static File Analyzer Console</h2>
-                      <p className="text-secondary text-sm">Dissect binary headers, entropy levels, and match signatures safely</p>
+                      <h2>File scanner</h2>
+                      <p className="text-secondary text-sm">Run safe static analysis for supported files. Your sample is not executed.</p>
                     </div>
                   </div>
 
@@ -1278,12 +1280,12 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
                         <div>
                           <h4 className="text-gold font-semibold">{file.name}</h4>
                           <p className="text-secondary text-xs mono mt-1">{formatFileSize(file.size)}</p>
-                          <p className="text-teal text-xs font-semibold mt-3">File Loaded. Ready to run console.</p>
+                          <p className="text-teal text-xs font-semibold mt-3">File ready for analysis</p>
                         </div>
                       ) : (
                         <div>
-                          <h4 className="font-semibold">Drag and Drop target file to dissect</h4>
-                          <p className="text-secondary text-sm mt-1">or click to choose file from system browser</p>
+                          <h4 className="font-semibold">Drag and drop a file here</h4>
+                          <p className="text-secondary text-sm mt-1">or click to browse your device</p>
                         </div>
                       )}
                     </div>

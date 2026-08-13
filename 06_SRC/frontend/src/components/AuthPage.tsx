@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Shield, Mail, Lock, User as UserIcon, AlertTriangle, KeyRound, Globe, ArrowLeft, Key, CheckCircle2 } from "lucide-react";
 import { useAuth } from "../context/AuthContext.tsx";
-import { registeredUsersManager, rememberedCredentialsManager, BASE_URL } from "../services/api.ts";
+import { rememberedCredentialsManager, BASE_URL } from "../services/api.ts";
 
 import { BlackHoleBackground } from "./BlackHoleBackground.tsx";
 
@@ -19,8 +19,8 @@ export const AuthPage: React.FC = () => {
 
   // Form Fields
   const [username, setUsername] = useState(savedCreds?.username || "");
-  const [email, setEmail] = useState(savedCreds?.email || "");
-  const [password, setPassword] = useState(savedCreds?.password || "");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [resetEmail, setResetEmail] = useState("");
 
@@ -50,7 +50,9 @@ export const AuthPage: React.FC = () => {
     try {
       await login(username, password);
       if (rememberMe) {
-        rememberedCredentialsManager.save(username, email, password);
+        rememberedCredentialsManager.save(username);
+      } else {
+        rememberedCredentialsManager.clear();
       }
     } catch (err: any) {
       setErrorMsg(err.message || "Invalid authentication credentials.");
@@ -75,11 +77,6 @@ export const AuthPage: React.FC = () => {
     }
     if (password !== confirmPassword) {
       setErrorMsg("Passwords do not match.");
-      return;
-    }
-
-    if (registeredUsersManager.isEmailRegistered(email)) {
-      setErrorMsg("This email address is already registered. Please sign in directly.");
       return;
     }
 
@@ -271,9 +268,7 @@ export const AuthPage: React.FC = () => {
                   type="button"
                   onClick={() => {
                     if (savedCreds.username) setUsername(savedCreds.username);
-                    if (savedCreds.email) setEmail(savedCreds.email);
-                    if (savedCreds.password) setPassword(savedCreds.password);
-                    setSuccessMsg(`Auto-filled saved credentials for: ${savedCreds.username}`);
+                    setSuccessMsg(`Username restored for: ${savedCreds.username}`);
                     setTimeout(() => setSuccessMsg(""), 3000);
                   }}
                   className="w-full mb-3 py-1.5 px-3 rounded-lg bg-gold/10 border border-gold/30 text-gold text-xs font-semibold flex items-center justify-center gap-1.5 hover:bg-gold/20 transition-all cursor-pointer"
@@ -283,12 +278,12 @@ export const AuthPage: React.FC = () => {
               )}
 
               <div className="form-group">
-                <label>Console Identity ID</label>
+                  <label>Username or email</label>
                 <div className="input-wrapper">
                   <UserIcon className="input-icon" size={16} />
                   <input 
                     type="text" 
-                    placeholder="e.g. analyst"
+                    placeholder="e.g. analyst or analyst@company.com"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     className="login-input"
@@ -298,13 +293,13 @@ export const AuthPage: React.FC = () => {
               
               <div className="form-group">
                 <div className="flex justify-between items-center">
-                  <label>Access token Key</label>
+                  <label>Password</label>
                   <button 
                     type="button" 
                     onClick={() => { setViewTab("forgot"); setErrorMsg(""); setSuccessMsg(""); }}
                     className="text-xs text-gold hover:underline font-semibold bg-transparent border-none cursor-pointer"
                   >
-                    Forgot Token?
+                    Forgot password?
                   </button>
                 </div>
                 <div className="input-wrapper">
@@ -327,7 +322,7 @@ export const AuthPage: React.FC = () => {
                     onChange={(e) => setRememberMe(e.target.checked)} 
                     className="accent-gold rounded"
                   />
-                  <span>Remember credentials on this device</span>
+                  <span>Remember my username on this device</span>
                 </label>
               </div>
 

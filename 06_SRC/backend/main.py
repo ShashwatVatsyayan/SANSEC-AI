@@ -105,6 +105,8 @@ workspace_settings = {
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    global user_repository, uploads_repository, analysis_repository, reports_repository
+    global history_repository, settings_repository, logs_repository, store, user_store
     # Startup validation
     if not IS_TESTING:
         logger.info("Connecting to MongoDB and validating...")
@@ -459,6 +461,9 @@ async def register_user(request: UserRegisterRequest):
     existing = await user_repository.get_user_by_username(request.username)
     if existing:
         raise HTTPException(status_code=400, detail="Username already exists.")
+    existing_email = await user_repository.get_user_by_email(request.email.strip().lower())
+    if existing_email:
+        raise HTTPException(status_code=400, detail="An account already exists for this email address.")
     user = {
         "id": f"usr_{int(datetime.now(UTC).timestamp() * 1000)}",
         "username": request.username,
@@ -475,6 +480,8 @@ async def register_user(request: UserRegisterRequest):
 @app.post("/api/auth/login", response_model=TokenResponse)
 async def login_user(request: UserLoginRequest):
     user = await user_repository.get_user_by_username(request.username)
+    if not user:
+        user = await user_repository.get_user_by_email(request.username.strip().lower())
     if not user:
         try:
             user = authenticate_demo_user(request.username, request.password)

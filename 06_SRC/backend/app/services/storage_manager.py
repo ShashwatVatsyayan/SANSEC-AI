@@ -12,6 +12,10 @@ class StorageManager:
         # Load variables from environment, with sensible fallbacks.
         # We resolve paths relative to the backend root (parent of app directory).
         backend_root = Path(__file__).resolve().parent.parent.parent
+        # Vercel functions have a read-only deployment directory. /tmp is the
+        # supported writable location; durable data belongs in MongoDB.
+        if os.getenv("VERCEL") == "1":
+            backend_root = Path("/tmp/sansec-storage")
         
         self.storage_root = self._resolve_path(os.getenv("STORAGE_ROOT", "storage"), backend_root)
         self.upload_dir = self._resolve_path(os.getenv("UPLOAD_DIRECTORY", "storage/uploads"), backend_root)

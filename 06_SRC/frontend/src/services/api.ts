@@ -94,7 +94,9 @@ export interface UserResponse {
   avatar_url?: string;
 }
 
-export const BASE_URL = import.meta.env.VITE_API_URL !== undefined ? import.meta.env.VITE_API_URL : "http://localhost:8000";
+// Use same-origin API routes in production. VITE_API_URL is only needed when
+// developing against a separately hosted backend.
+export const BASE_URL = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
 
 export const tokenManager = {
   getAccessToken: () => localStorage.getItem("sansec_access_token"),
@@ -126,13 +128,14 @@ export const tokenManager = {
 };
 
 export const rememberedCredentialsManager = {
-  getSaved: (): { username: string; email?: string; password?: string } | null => {
+  getSaved: (): { username: string } | null => {
     const raw = localStorage.getItem("sansec_remembered_credentials");
     if (!raw) return null;
     try { return JSON.parse(raw); } catch (e) { return null; }
   },
-  save: (username: string, email?: string, password?: string) => {
-    localStorage.setItem("sansec_remembered_credentials", JSON.stringify({ username, email, password }));
+  save: (username: string) => {
+    // Passwords must never be stored in browser storage.
+    localStorage.setItem("sansec_remembered_credentials", JSON.stringify({ username }));
   },
   clear: () => {
     localStorage.removeItem("sansec_remembered_credentials");
@@ -170,6 +173,15 @@ async function apiFetch(endpoint: string, options: RequestInit & { noAuth?: bool
   } catch (error) {
     console.error(`API connection failed for ${endpoint}:`, error);
     throw error;
+  }
+}
+
+async function responseMessage(response: Response, fallback: string): Promise<string> {
+  try {
+    const payload = await response.json();
+    return payload.message || payload.detail || fallback;
+  } catch {
+    return fallback;
   }
 }
 
@@ -298,148 +310,30 @@ const MOCK_NOTIFICATIONS = [
   { id: "not_3", message: "SanSec analysis gateway active on port 8000", severity: "info", timestamp: new Date(Date.now() - 86400000).toISOString() }
 ];
 
-interface StoredUserAccount {
-  id: string;
-  username: string;
-  email: string;
-  passwordHash: string;
-  role: "Admin" | "Analyst" | "Guest";
-  created_at: string;
-}
-
-const DEFAULT_ACCOUNTS: StoredUserAccount[] = [
-  {
-    id: "usr_admin",
-    username: "admin",
-    email: "admin@sansec.ai",
-    passwordHash: "admin123",
-    role: "Admin",
-    created_at: "2026-01-01T00:00:00Z"
-  },
-  {
-    id: "usr_analyst",
-    username: "analyst",
-    email: "analyst@sansec.ai",
-    passwordHash: "sansec2026",
-    role: "Analyst",
-    created_at: "2026-01-01T00:00:00Z"
-  }
-];
-
-export const registeredUsersManager = {
-  getAccounts: (): StoredUserAccount[] => {
-    const raw = localStorage.getItem("sansec_registered_accounts");
-    if (!raw) {
-      localStorage.setItem("sansec_registered_accounts", JSON.stringify(DEFAULT_ACCOUNTS));
-      return DEFAULT_ACCOUNTS;
-    }
-    try {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-    } catch (e) {}
-    return DEFAULT_ACCOUNTS;
-  },
-
-  isEmailRegistered: (email: string): boolean => {
-    const accounts = registeredUsersManager.getAccounts();
-    return accounts.some(a => a.email.toLowerCase().trim() === email.toLowerCase().trim());
-  },
-
-  addAccount: (username: string, email: string, passwordHash: string): UserResponse => {
-    const accounts = registeredUsersManager.getAccounts();
-    const existing = accounts.find(
-      a => a.email.toLowerCase().trim() === email.toLowerCase().trim() || 
-           a.username.toLowerCase().trim() === username.toLowerCase().trim()
-    );
-    if (existing) {
-      throw new Error("An account with this email address or username identity is already registered.");
-    }
-    const newAccount: StoredUserAccount = {
-      id: "usr_" + Math.random().toString(36).substring(2, 9),
-      username: username.trim(),
-      email: email.toLowerCase().trim(),
-      passwordHash,
-      role: "Analyst",
-      created_at: new Date().toISOString()
-    };
-    accounts.push(newAccount);
-    localStorage.setItem("sansec_registered_accounts", JSON.stringify(accounts));
-    const profile: UserResponse = {
-      id: newAccount.id,
-      username: newAccount.username,
-      email: newAccount.email,
-      role: newAccount.role,
-      created_at: newAccount.created_at,
-      auth_provider: "local"
-    };
-    tokenManager.setUserProfile(profile);
-    return profile;
-  },
-
-  findValidAccount: (identity: string, passwordInput: string): StoredUserAccount | null => {
-    const accounts = registeredUsersManager.getAccounts();
-    const target = identity.toLowerCase().trim();
-    const matched = accounts.find(
-      a => (a.username.toLowerCase().trim() === target || a.email.toLowerCase().trim() === target) && 
-           a.passwordHash === passwordInput
-    );
-    return matched || null;
-  }
-};
-
 export const api = {
   auth: {
     register: async (username: string, email: string, password: string): Promise<UserResponse> => {
-      if (registeredUsersManager.isEmailRegistered(email)) {
-        throw new Error("This email is already registered. Please sign in with your credentials.");
-      }
-      try {
-        const res = await apiFetch("/api/auth/register", {
-          method: "POST",
-          body: { username, email, password },
-          noAuth: true
-        });
-        if (res.ok) {
-          const profile = await res.json();
-          tokenManager.setUserProfile(profile);
-          return profile;
-        }
-      } catch (e: any) {}
-      return registeredUsersManager.addAccount(username, email, password);
+      const res = await apiFetch("/api/auth/register", {
+        method: "POST",
+        body: { username, email, password },
+        noAuth: true
+      });
+      if (!res.ok) throw new Error(await responseMessage(res, "Unable to create your account."));
+      const profile = await res.json();
+      tokenManager.setUserProfile(profile);
+      return profile;
     },
 
     login: async (identity: string, passwordInput: string): Promise<any> => {
-      try {
-        const res = await apiFetch("/api/auth/login", {
-          method: "POST",
-          body: { username: identity, password: passwordInput },
-          noAuth: true
-        });
-        if (res.ok) {
-          const data = await res.json();
-          tokenManager.setTokens(data.access_token, data.refresh_token);
-          return data;
-        }
-      } catch (e: any) {}
-
-      // Strict validation against registered user accounts
-      const validAccount = registeredUsersManager.findValidAccount(identity, passwordInput);
-      if (validAccount) {
-        const access = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mock_access_token";
-        const refresh = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mock_refresh_token";
-        tokenManager.setTokens(access, refresh);
-        const profile: UserResponse = {
-          id: validAccount.id,
-          username: validAccount.username,
-          email: validAccount.email,
-          role: validAccount.role,
-          created_at: validAccount.created_at,
-          auth_provider: "local"
-        };
-        tokenManager.setUserProfile(profile);
-        return { access_token: access, refresh_token: refresh, token_type: "bearer" };
-      }
-      throw new Error("Access Denied: Unregistered email or invalid password. Please create a profile first.");
+      const res = await apiFetch("/api/auth/login", {
+        method: "POST",
+        body: { username: identity, password: passwordInput },
+        noAuth: true
+      });
+      if (!res.ok) throw new Error(await responseMessage(res, "Sign-in failed. Check your username and password."));
+      const data = await res.json();
+      tokenManager.setTokens(data.access_token, data.refresh_token);
+      return data;
     },
 
     loginGoogle: async (email: string, name?: string): Promise<UserResponse> => {
@@ -469,24 +363,11 @@ export const api = {
     },
 
     me: async (): Promise<UserResponse> => {
-      const savedProfile = tokenManager.getUserProfile();
-      if (savedProfile) return savedProfile;
-      try {
-        const res = await apiFetch("/api/auth/me");
-        if (res.ok) {
-          const profile = await res.json();
-          tokenManager.setUserProfile(profile);
-          return profile;
-        }
-      } catch (e) {}
-      return {
-        id: "usr_91238a0",
-        username: "analyst",
-        email: "analyst@sansec.ai",
-        role: "Analyst",
-        created_at: new Date().toISOString(),
-        auth_provider: "local"
-      };
+      const res = await apiFetch("/api/auth/me");
+      if (!res.ok) throw new Error(await responseMessage(res, "Your session has expired. Please sign in again."));
+      const profile = await res.json();
+      tokenManager.setUserProfile(profile);
+      return profile;
     }
   },
 
@@ -539,19 +420,9 @@ export const api = {
     },
 
     getResults: async (id: string): Promise<AnalysisReport> => {
-      try {
-        const res = await apiFetch(`/api/analysis/${id}`);
-        if (res.ok) return await res.json();
-      } catch (e) {}
-      
-      if (MOCK_REPORTS[id]) {
-        return MOCK_REPORTS[id];
-      }
-      return {
-        ...MOCK_REPORTS["01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca545b"],
-        id: id,
-        filename: "unknown_payload.exe"
-      };
+      const res = await apiFetch(`/api/analysis/${id}`);
+      if (!res.ok) throw new Error(await responseMessage(res, "The analysis result could not be retrieved."));
+      return await res.json();
     }
   },
 

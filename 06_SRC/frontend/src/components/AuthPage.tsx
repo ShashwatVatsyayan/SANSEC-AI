@@ -455,68 +455,28 @@ export const AuthPage: React.FC = () => {
               </div>
 
               <p className="text-xs text-secondary mb-4">
-                Choose or enter your Google Workspace account identity to access SANSEC AI console:
+                Enter your Google Workspace account email to verify and sign in to SANSEC AI:
               </p>
-
-              {/* Quick Google Account Options */}
-              <div className="flex flex-col gap-2 mb-4">
-                <button
-                  type="button"
-                  onClick={() => executeGoogleAuth("shashwat@gmail.com", "Shashwat Vatsyayan")}
-                  className="flex items-center justify-between p-3 rounded-lg border border-color bg-secondary hover:border-gold hover:bg-gold/5 transition-all cursor-pointer text-left"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-gold/20 text-gold flex items-center justify-center font-bold text-sm">
-                      SV
-                    </div>
-                    <div>
-                      <div className="text-sm font-semibold text-primary">Shashwat Vatsyayan</div>
-                      <div className="text-xs text-muted">shashwat@gmail.com</div>
-                    </div>
-                  </div>
-                  <span className="text-xs text-gold font-mono">Select ›</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => executeGoogleAuth("analyst@sansec.ai", "Security Analyst")}
-                  className="flex items-center justify-between p-3 rounded-lg border border-color bg-secondary hover:border-gold hover:bg-gold/5 transition-all cursor-pointer text-left"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-teal-500/20 text-teal flex items-center justify-center font-bold text-sm">
-                      SA
-                    </div>
-                    <div>
-                      <div className="text-sm font-semibold text-primary">Security Analyst</div>
-                      <div className="text-xs text-muted">analyst@sansec.ai</div>
-                    </div>
-                  </div>
-                  <span className="text-xs text-gold font-mono">Select ›</span>
-                </button>
-              </div>
-
-              <div className="oauth-separator mb-4">
-                <span>OR ENTER YOUR GOOGLE ACCOUNT</span>
-              </div>
 
               {/* Custom Google Account Form */}
               <form onSubmit={(e) => { e.preventDefault(); executeGoogleAuth(customGoogleEmail, customGoogleName); }} className="flex flex-col gap-3">
                 <div className="form-group">
-                  <label className="text-xs">Google Email Address</label>
+                  <label className="text-xs font-semibold">Google Workspace Email Address</label>
                   <div className="input-wrapper">
                     <Mail className="input-icon" size={16} />
                     <input 
                       type="email" 
-                      placeholder="your.name@gmail.com"
+                      placeholder="your.name@gmail.com or analyst@company.com"
                       value={customGoogleEmail}
                       onChange={(e) => setCustomGoogleEmail(e.target.value)}
                       className="login-input text-sm"
+                      required
                     />
                   </div>
                 </div>
 
                 <div className="form-group">
-                  <label className="text-xs">Display Name (Optional)</label>
+                  <label className="text-xs font-semibold">Display Name (Optional)</label>
                   <div className="input-wrapper">
                     <UserIcon className="input-icon" size={16} />
                     <input 
@@ -529,20 +489,25 @@ export const AuthPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="flex gap-2 mt-2">
+                <div className="flex gap-2 mt-3">
                   <button 
                     type="button" 
                     onClick={() => setShowGoogleModal(false)}
-                    className="btn-secondary flex-1 py-2 text-xs"
+                    className="btn-secondary flex-1 py-2 text-xs cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button 
                     type="submit" 
                     disabled={loading || !customGoogleEmail}
-                    className="btn-primary flex-1 py-2 text-xs"
+                    className="btn-primary flex-1 py-2 text-xs flex items-center justify-center gap-1.5 cursor-pointer"
                   >
-                    {loading ? <div className="auth-spinner"></div> : "Continue with Account"}
+                    {loading ? <div className="auth-spinner"></div> : (
+                      <>
+                        <Globe size={14} />
+                        <span>Sign In with Google</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </form>

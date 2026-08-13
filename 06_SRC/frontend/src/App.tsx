@@ -75,6 +75,20 @@ function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState<boolean>(false);
 
+  // Scroll Header Auto-Collapse State
+  const [isHeaderVisible, setIsHeaderVisible] = useState<boolean>(true);
+  const lastScrollY = useRef<number>(0);
+
+  const handleWorkspaceScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const currentScrollY = e.currentTarget.scrollTop;
+    if (currentScrollY > lastScrollY.current && currentScrollY > 40) {
+      setIsHeaderVisible(false); // Collapses upward when scrolling down
+    } else if (currentScrollY < lastScrollY.current) {
+      setIsHeaderVisible(true); // Re-appears when scrolling up
+    }
+    lastScrollY.current = currentScrollY;
+  };
+
   // Scanner state
   const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState<boolean>(false);
@@ -609,9 +623,9 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
       </aside>
 
       {/* Main Workspace Frame */}
-      <main className="workspace-main">
+      <main className="workspace-main flex flex-col flex-1 h-screen overflow-hidden">
         {/* Top Header Bar */}
-        <header className="top-header-bar">
+        <header className={`top-header-bar ${!isHeaderVisible ? "header-collapsed" : ""}`}>
           <div className="flex items-center gap-4">
             {/* Separate SANSEC AI Logo */}
             <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => { setActiveTab("dashboard"); setSelectedReport(null); }}>
@@ -728,7 +742,10 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
             </AnimatePresence>
           </div>
         </header>
-        <AnimatePresence mode="wait">
+
+        {/* Scrollable Workspace View Content */}
+        <div className="workspace-content flex-1 overflow-y-auto" onScroll={handleWorkspaceScroll}>
+          <AnimatePresence mode="wait">
           {activeTab === "dashboard" && (
             <motion.div 
               key="dashboard"
@@ -1856,6 +1873,7 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
             </motion.div>
           )}
         </AnimatePresence>
+        </div>
       </main>
     </div>
   );

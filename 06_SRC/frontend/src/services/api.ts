@@ -125,6 +125,20 @@ export const tokenManager = {
   }
 };
 
+export const rememberedCredentialsManager = {
+  getSaved: (): { username: string; email?: string } | null => {
+    const raw = localStorage.getItem("sansec_remembered_credentials");
+    if (!raw) return null;
+    try { return JSON.parse(raw); } catch (e) { return null; }
+  },
+  save: (username: string, email?: string) => {
+    localStorage.setItem("sansec_remembered_credentials", JSON.stringify({ username, email }));
+  },
+  clear: () => {
+    localStorage.removeItem("sansec_remembered_credentials");
+  }
+};
+
 async function apiFetch(endpoint: string, options: RequestInit & { noAuth?: boolean } = {}) {
   const accessToken = tokenManager.getAccessToken();
   const headers: Record<string, string> = {

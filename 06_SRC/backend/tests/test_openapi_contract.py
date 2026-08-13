@@ -12,6 +12,7 @@ from app.services.auth import create_access_token
 
 CONTRACT_ROUTES = {
     ("POST", "/api/auth/register"),
+    ("POST", "/api/auth/send-otp"),
     ("POST", "/api/auth/login"),
     ("POST", "/api/auth/logout"),
     ("POST", "/api/auth/refresh"),

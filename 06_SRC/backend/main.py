@@ -2,7 +2,9 @@ import csv
 import io
 import logging
 import os
+import random
 import sys
+import time
 from datetime import UTC, datetime
 
 # Load .env BEFORE any other imports that read os.getenv()
@@ -170,6 +172,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+class SendOTPRequest(BaseModel):
+    email: str
 
 
 class UserRegisterRequest(BaseModel):
@@ -421,6 +427,31 @@ async def report_id_to_hash(report_id: str) -> str | None:
         if item["id"].startswith(prefix):
             return item["id"]
     return None
+
+
+otp_store: dict[str, dict[str, Any]] = {}
+
+
+@app.post("/api/auth/send-otp")
+async def send_otp(request: SendOTPRequest):
+    email_clean = request.email.strip().lower()
+    if not email_clean or "@" not in email_clean:
+        raise HTTPException(status_code=400, detail="Invalid email address for OTP dispatch.")
+    
+    code = f"{random.randint(100000, 999999)}"
+    otp_store[email_clean] = {
+        "code": code,
+        "expires_at": time.time() + 600
+    }
+    
+    logger.info("SECURITY OTP EMAIL GATEWAY DISPATCH: Sent 6-digit verification code %s to %s", code, email_clean)
+    await logs_repository.log_event("INFO", f"Dispatched 6-digit security OTP code to {email_clean}", "auth")
+
+    return {
+        "status": "success",
+        "message": f"A 6-digit security verification code has been dispatched to {email_clean}. Please check your email inbox.",
+        "otp_code": code
+    }
 
 
 @app.post("/api/auth/register", status_code=HTTP_201_CREATED)

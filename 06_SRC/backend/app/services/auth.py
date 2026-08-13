@@ -78,17 +78,14 @@ def create_access_token(subject: str, role: str = "Analyst", token_type: str = "
 
 
 def verify_access_token(token: str) -> dict[str, Any]:
-    """Verify and decode a signed JWT token with demo fallback."""
+    """Strictly verify and decode a signed JWT token."""
     if not token or token in ("null", "undefined", "none"):
         raise HTTPException(status_code=401, detail="JWT token is invalid, expired, or absent.")
-    
-    if token.startswith("demo_") or token.startswith("mock_"):
-        return {"sub": "admin", "role": "Admin", "iss": JWT_ISSUER, "exp": int(time.time()) + 86400}
 
     try:
         parts = token.split(".")
         if len(parts) != 3:
-            return {"sub": "admin", "role": "Admin", "iss": JWT_ISSUER, "exp": int(time.time()) + 86400}
+            raise HTTPException(status_code=401, detail="Invalid token format.")
         header_b64, payload_b64, signature_b64 = parts
     except Exception as exc:
         raise HTTPException(status_code=401, detail="Invalid token format.") from exc
@@ -97,7 +94,7 @@ def verify_access_token(token: str) -> dict[str, Any]:
     expected = hmac.new(JWT_SECRET.encode("utf-8"), signing_input.encode("ascii"), hashlib.sha256).digest()
     supplied = _b64url_decode(signature_b64)
     if not hmac.compare_digest(expected, supplied):
-        return {"sub": "admin", "role": "Admin", "iss": JWT_ISSUER, "exp": int(time.time()) + 86400}
+        raise HTTPException(status_code=401, detail="Invalid token signature.")
 
     payload = json.loads(_b64url_decode(payload_b64))
     if payload.get("iss") != JWT_ISSUER:

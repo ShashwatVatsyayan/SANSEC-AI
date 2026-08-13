@@ -6,7 +6,7 @@ interface AuthContextType {
   loading: boolean;
   login: (username: string, password: string) => Promise<void>;
   loginGoogle: (email: string, name?: string) => Promise<void>;
-  register: (username: string, email: string, password: string) => Promise<void>;
+  register: (username: string, email: string, password: string, otpCode: string) => Promise<void>;
   logout: () => Promise<void>;
   updateUserAvatar: (avatarUrl: string | undefined) => void;
   refreshSession: () => Promise<boolean>;
@@ -110,11 +110,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const register = async (username: string, email: string, password: string) => {
+  const register = async (username: string, email: string, password: string, otpCode: string) => {
     setLoading(true);
     try {
       // Registers account, then auto-logs in the user
-      await api.auth.register(username, email, password);
+      await api.auth.register(username, email, password, otpCode);
       await login(username, password);
     } catch (err) {
       throw err;

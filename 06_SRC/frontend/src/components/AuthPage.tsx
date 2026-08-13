@@ -25,7 +25,6 @@ export const AuthPage: React.FC = () => {
   const [resetEmail, setResetEmail] = useState("");
 
   // OTP Verification state
-  const [generatedOtp, setGeneratedOtp] = useState("");
   const [userOtpInput, setUserOtpInput] = useState("");
   const [otpNotice, setOtpNotice] = useState("");
 
@@ -83,26 +82,22 @@ export const AuthPage: React.FC = () => {
     setErrorMsg("");
     setLoading(true);
 
-    let code = Math.floor(100000 + Math.random() * 900000).toString();
-
-    // Call backend API /api/auth/send-otp
     try {
       const res = await fetch(`${BASE_URL}/api/auth/send-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email })
       });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.otp_code) {
-          code = data.otp_code;
-        }
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || "We could not send a verification email.");
       }
     } catch (err) {
-      console.warn("Backend OTP API offline, using secure local email gateway simulator:", err);
+      setLoading(false);
+      setErrorMsg(err instanceof Error ? err.message : "We could not send a verification email.");
+      return;
     }
 
-    setGeneratedOtp(code);
     setUserOtpInput("");
     setOtpNotice(`📬 A 6-digit security verification code has been dispatched to your email inbox (${email}). Please check your email to proceed.`);
     
@@ -118,16 +113,11 @@ export const AuthPage: React.FC = () => {
       setErrorMsg("Please enter the 6-digit verification code sent to your email.");
       return;
     }
-    if (userOtpInput.trim() !== generatedOtp) {
-      setErrorMsg("Invalid OTP code. Please enter the correct verification code.");
-      return;
-    }
-
     setErrorMsg("");
     setLoading(true);
 
     try {
-      await register(username, email, password);
+      await register(username, email, password, userOtpInput.trim());
       setSuccessMsg("Email verified! Profile created and session activated.");
     } catch (err: any) {
       setErrorMsg(err.message || "Failed to complete profile registration.");

@@ -312,10 +312,10 @@ const MOCK_NOTIFICATIONS = [
 
 export const api = {
   auth: {
-    register: async (username: string, email: string, password: string): Promise<UserResponse> => {
+    register: async (username: string, email: string, password: string, otpCode: string): Promise<UserResponse> => {
       const res = await apiFetch("/api/auth/register", {
         method: "POST",
-        body: { username, email, password },
+        body: { username, email, password, otp_code: otpCode },
         noAuth: true
       });
       if (!res.ok) throw new Error(await responseMessage(res, "Unable to create your account."));

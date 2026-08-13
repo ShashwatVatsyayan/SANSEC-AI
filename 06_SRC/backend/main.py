@@ -3,9 +3,11 @@ import io
 import logging
 import os
 import random
+import smtplib
 import sys
 import time
 from datetime import UTC, datetime
+from email.message import EmailMessage
 
 # Load .env BEFORE any other imports that read os.getenv()
 from dotenv import load_dotenv
@@ -184,6 +186,7 @@ class UserRegisterRequest(BaseModel):
     username: str
     email: str
     password: str = Field(min_length=8)
+    otp_code: str = Field(min_length=6, max_length=6)
 
 
 class UserLoginRequest(BaseModel):
@@ -434,6 +437,33 @@ async def report_id_to_hash(report_id: str) -> str | None:
 otp_store: dict[str, dict[str, Any]] = {}
 
 
+def deliver_otp_email(recipient: str, code: str) -> None:
+    """Send a registration code through a configured SMTP provider."""
+    host = os.getenv("SMTP_HOST")
+    username = os.getenv("SMTP_USERNAME")
+    password = os.getenv("SMTP_PASSWORD")
+    sender = os.getenv("SMTP_FROM") or username
+    if not all((host, username, password, sender)):
+        raise RuntimeError("Email delivery is not configured.")
+    try:
+        port = int(os.getenv("SMTP_PORT", "587"))
+    except ValueError:
+        port = 587
+
+    message = EmailMessage()
+    message["Subject"] = "Your SANSEC AI verification code"
+    message["From"] = sender
+    message["To"] = recipient
+    message.set_content(
+        f"Your SANSEC AI verification code is {code}.\n\n"
+        "It expires in 10 minutes. If you did not request this code, you can ignore this email."
+    )
+    with smtplib.SMTP(host, port, timeout=10) as smtp:
+        smtp.starttls()
+        smtp.login(username, password)
+        smtp.send_message(message)
+
+
 @app.post("/api/auth/send-otp")
 async def send_otp(request: SendOTPRequest):
     email_clean = request.email.strip().lower()
@@ -441,38 +471,44 @@ async def send_otp(request: SendOTPRequest):
         raise HTTPException(status_code=400, detail="Invalid email address for OTP dispatch.")
     
     code = f"{random.randint(100000, 999999)}"
-    otp_store[email_clean] = {
-        "code": code,
-        "expires_at": time.time() + 600
-    }
-    
-    logger.info("SECURITY OTP EMAIL GATEWAY DISPATCH: Sent 6-digit verification code %s to %s", code, email_clean)
+    try:
+        deliver_otp_email(email_clean, code)
+    except Exception as exc:
+        logger.error("OTP email delivery failed for %s: %s", email_clean, exc)
+        raise HTTPException(status_code=503, detail="We could not send a verification email. Please try again later.") from exc
+
+    otp_store[email_clean] = {"code": code, "expires_at": time.time() + 600}
+    logger.info("Sent a registration verification email to %s", email_clean)
     await logs_repository.log_event("INFO", f"Dispatched 6-digit security OTP code to {email_clean}", "auth")
 
     return {
         "status": "success",
-        "message": f"A 6-digit security verification code has been dispatched to {email_clean}. Please check your email inbox.",
-        "otp_code": code
+        "message": f"A 6-digit verification code was sent to {email_clean}."
     }
 
 
 @app.post("/api/auth/register", status_code=HTTP_201_CREATED)
 async def register_user(request: UserRegisterRequest):
+    email_clean = request.email.strip().lower()
+    otp = otp_store.get(email_clean)
+    if not otp or otp["expires_at"] < time.time() or otp["code"] != request.otp_code:
+        raise HTTPException(status_code=400, detail="The verification code is invalid or has expired. Request a new code and try again.")
     existing = await user_repository.get_user_by_username(request.username)
     if existing:
         raise HTTPException(status_code=400, detail="Username already exists.")
-    existing_email = await user_repository.get_user_by_email(request.email.strip().lower())
+    existing_email = await user_repository.get_user_by_email(email_clean)
     if existing_email:
         raise HTTPException(status_code=400, detail="An account already exists for this email address.")
     user = {
         "id": f"usr_{int(datetime.now(UTC).timestamp() * 1000)}",
         "username": request.username,
-        "email": request.email,
+        "email": email_clean,
         "role": "Analyst",
         "created_at": now_iso(),
         "password": hash_password(request.password),
     }
     await user_repository.save_user(user)
+    otp_store.pop(email_clean, None)
     await logs_repository.log_event("INFO", f"Registered new user: {request.username}", "auth")
     return public_user(user)
 

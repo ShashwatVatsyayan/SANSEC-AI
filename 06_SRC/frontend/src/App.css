@@ -60,31 +60,31 @@
 .ios-glass-card {
   position: relative;
   z-index: 10;
-  background: rgba(18, 24, 38, 0.75) !important;
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  border-radius: 18px !important;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: rgba(14, 18, 28, 0.88) !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .ios-glass-card:hover {
-  border-color: rgba(226, 177, 60, 0.3) !important;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45), 0 0 20px rgba(226, 177, 60, 0.12) !important;
+  border-color: rgba(226, 177, 60, 0.4) !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55), 0 0 20px rgba(226, 177, 60, 0.15) !important;
 }
 
 /* Collapsible Sidebar Styles */
 .sidebar {
   width: 280px;
-  background-color: rgba(18, 20, 26, 0.95);
-  backdrop-filter: blur(12px);
-  border-right: 1px solid var(--border-color);
+  background-color: rgba(12, 15, 24, 0.95);
+  backdrop-filter: blur(16px);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   flex-direction: column;
   padding: 20px;
   flex-shrink: 0;
-  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.25);
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.35);
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 40;
 }
@@ -116,7 +116,27 @@
   padding-left: 0;
 }
 
-/* Sidebar Toggle Button */
+/* Sidebar Toggle Button inside Sidebar Header */
+.sidebar-collapse-icon-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text-secondary);
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition-smooth);
+}
+
+.sidebar-collapse-icon-btn:hover {
+  background: rgba(226, 177, 60, 0.15);
+  color: var(--accent-gold);
+  border-color: rgba(226, 177, 60, 0.4);
+}
+
 .sidebar-toggle-btn {
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--border-color);

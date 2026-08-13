@@ -528,26 +528,33 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
 
       {/* Sidebar Navigation */}
       <aside className={`sidebar ${isSidebarCollapsed ? "collapsed" : ""} ${isMobileMenuOpen ? "mobile-open" : ""}`}>
-        <div className="logo-section flex items-center gap-3">
+        <div className="logo-section flex items-center justify-between">
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => { setActiveTab("dashboard"); setSelectedReport(null); }}>
             <Shield className="logo-shield" style={{ color: "var(--accent-gold)" }} />
             {!isSidebarCollapsed && (
               <div>
                 <h1 className="logo-title">SANSEC <span className="gold-text">AI</span></h1>
-                <span className="logo-subtitle">OPERATIONS CONSOLE</span>
+                <span className="logo-subtitle">OPERATIONS</span>
               </div>
             )}
           </div>
+          <button 
+            onClick={toggleSidebar} 
+            className="sidebar-collapse-icon-btn hidden md:flex" 
+            title={isSidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+          >
+            {isSidebarCollapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+          </button>
         </div>
 
         <nav className="nav-menu">
           <button 
             className={`nav-item ${activeTab === "dashboard" ? "active" : ""}`}
             onClick={() => { setActiveTab("dashboard"); setSelectedReport(null); setIsMobileMenuOpen(false); }}
-            title="Workspace Dashboard"
+            title="Dashboard Overview"
           >
             <TrendingUp size={18} />
-            {!isSidebarCollapsed && <span className="nav-item-label">Workspace Dashboard</span>}
+            {!isSidebarCollapsed && <span className="nav-item-label">Dashboard Overview</span>}
           </button>
           <button 
             className={`nav-item ${activeTab === "scanner" ? "active" : ""}`}
@@ -585,10 +592,10 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
             <button 
               className={`nav-item ${activeTab === "admin" ? "active" : ""}`}
               onClick={() => { setActiveTab("admin"); setIsMobileMenuOpen(false); }}
-              title="Admin Registry"
+              title="Admin Users"
             >
               <ShieldCheck size={18} />
-              {!isSidebarCollapsed && <span className="nav-item-label">Admin Registry</span>}
+              {!isSidebarCollapsed && <span className="nav-item-label">Admin Users</span>}
             </button>
           )}
         </nav>
@@ -600,7 +607,7 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
           </div>
           <button onClick={handleLogout} className="btn-logout" title="Terminal Logout">
             <LogOut size={14} />
-            {!isSidebarCollapsed && <span className="sidebar-footer-text">Terminal Logout</span>}
+            {!isSidebarCollapsed && <span className="sidebar-footer-text">Sign Out</span>}
           </button>
         </div>
       </aside>
@@ -610,24 +617,18 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
         {/* Top Header Bar */}
         <header className="top-header-bar">
           <div className="flex items-center gap-3">
-            {/* Unified Sidebar Toggle Button */}
+            {/* Mobile Drawer Button */}
             <button 
-              className="sidebar-toggle-btn cursor-pointer"
-              onClick={() => {
-                if (window.innerWidth < 768) {
-                  setIsMobileMenuOpen(prev => !prev);
-                } else {
-                  toggleSidebar();
-                }
-              }}
-              title={isSidebarCollapsed ? "Expand Navigation Sidebar" : "Collapse Navigation Sidebar"}
+              className="md:hidden sidebar-toggle-btn cursor-pointer"
+              onClick={() => setIsMobileMenuOpen(prev => !prev)}
+              title="Toggle Mobile Menu"
             >
-              {isSidebarCollapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
+              {isMobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
             </button>
             <div className="flex items-center gap-2">
               <Shield size={16} className="text-gold" />
               <span className="text-xs font-bold uppercase tracking-wider text-secondary">
-                SANSEC AI / <span className="text-primary">{activeTab}</span>
+                SANSEC AI / <span className="text-primary font-mono">{activeTab}</span>
               </span>
             </div>
           </div>
@@ -735,8 +736,8 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
             >
               <div className="topbar">
                 <div>
-                  <h2>Security Operations Command Dashboard</h2>
-                  <p className="text-secondary text-sm">Real-time malware analysis and explainable diagnostics</p>
+                  <h2>Security Command Overview</h2>
+                  <p className="text-secondary text-sm">Real-time telemetry and threat metrics</p>
                 </div>
                 <div className="time-badge mono">
                   📅 UTC: {new Date().toISOString().split("T")[0]}
@@ -746,19 +747,19 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
               {/* Stats Row */}
               <div className="stats-row">
                 <div className="glow-card stat-card">
-                  <span className="stat-label">Total Scans Run</span>
+                  <span className="stat-label">TOTAL SCANS</span>
                   <span className="stat-value text-teal">{stats.totalScans}</span>
                 </div>
                 <div className="glow-card stat-card">
-                  <span className="stat-label">Malicious Heuristics Flagged</span>
+                  <span className="stat-label">THREATS DETECTED</span>
                   <span className="stat-value text-red">{stats.threatsDetected}</span>
                 </div>
                 <div className="glow-card stat-card">
-                  <span className="stat-label">Mean Workspace Threat Factor</span>
+                  <span className="stat-label">AVG RISK SCORE</span>
                   <span className="stat-value text-gold">{stats.avgRiskScore}/100</span>
                 </div>
                 <div className="glow-card stat-card">
-                  <span className="stat-label">PE Executables Dissected</span>
+                  <span className="stat-label">EXECUTABLES ANALYZED</span>
                   <span className="stat-value">{stats.peFilesScanned}</span>
                 </div>
               </div>

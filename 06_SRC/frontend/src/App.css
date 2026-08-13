@@ -437,27 +437,29 @@
 }
 
 .dropzone {
-  border: 2px dashed var(--border-color);
-  border-radius: 12px;
+  border: 2px dashed rgba(226, 177, 60, 0.4);
+  border-radius: 16px;
   height: 250px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  background: var(--bg-secondary);
-  transition: var(--transition-smooth);
+  background: rgba(14, 18, 28, 0.55) !important;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .dropzone:hover, .dropzone.dragging {
   border-color: var(--accent-gold);
-  background: rgba(226, 177, 60, 0.02);
-  box-shadow: var(--shadow-glow);
+  background: rgba(226, 177, 60, 0.08) !important;
+  box-shadow: 0 0 25px rgba(226, 177, 60, 0.18);
 }
 
 .dropzone.has-file {
   border-style: solid;
   border-color: var(--accent-teal);
-  background: rgba(69, 162, 158, 0.02);
+  background: rgba(69, 162, 158, 0.08) !important;
 }
 
 .dropzone-content {

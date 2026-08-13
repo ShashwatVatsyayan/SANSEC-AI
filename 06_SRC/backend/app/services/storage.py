@@ -420,7 +420,7 @@ class AsyncInMemorySettingsRepository:
     def __init__(self) -> None:
         self._settings = {
             "active_ai_model": os.getenv("SANSEC_ACTIVE_AI_MODEL", "sansec-local-explainer"),
-            "max_file_size_mb": 100,
+            "max_file_size_mb": 5000,
             "automatic_virustotal_lookup": os.getenv("SANSEC_AUTOMATIC_VT", "false").lower() == "true",
         }
 

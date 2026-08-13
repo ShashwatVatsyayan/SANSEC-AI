@@ -51,6 +51,14 @@ import { useAuth } from "./context/AuthContext.tsx";
 import { AuthPage } from "./components/AuthPage.tsx";
 import { BlackHoleBackground } from "./components/BlackHoleBackground.tsx";
 
+export const formatFileSize = (bytes: number): string => {
+  if (!bytes || bytes <= 0) return "0 B";
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+};
+
 
 function App() {
   // Authentication State via Context
@@ -285,7 +293,7 @@ function App() {
     setChatMessages([]);
     setScanLogs([
       `[*] Initializing connection gateway...`,
-      `[*] Target sample selected: ${selectedFile.name} (${(selectedFile.size / 1024).toFixed(2)} KB)`
+      `[*] Target sample selected: ${selectedFile.name} (${formatFileSize(selectedFile.size)})`
     ]);
 
     try {
@@ -391,6 +399,7 @@ function App() {
         });
         fetchHistory();
         fetchDashboardStats();
+        generateAiReport(results.id);
       }, 400);
 
     } catch (err: any) {
@@ -403,10 +412,9 @@ function App() {
     try {
       const report = await api.analysis.getResults(reportHash);
       setSelectedReport(report);
-      setAiExplanation("");
-      setChatMessages([]);
       setActiveResultTab("overview");
       setActiveTab("scanner");
+      generateAiReport(reportHash);
     } catch (err) {
       console.error("Failed to load archive report:", err);
     }
@@ -941,7 +949,7 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
                               </tr>
                               <tr>
                                 <td>File Size</td>
-                                <td className="text-right mono">{(selectedReport.size / 1024).toFixed(2)} KB ({selectedReport.size} bytes)</td>
+                                <td className="text-right mono">{formatFileSize(selectedReport.size)} ({selectedReport.size.toLocaleString()} bytes)</td>
                               </tr>
                               <tr>
                                 <td>Shannon Entropy</td>
@@ -1252,7 +1260,7 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
                       {file ? (
                         <div>
                           <h4 className="text-gold font-semibold">{file.name}</h4>
-                          <p className="text-secondary text-xs mono mt-1">{(file.size / 1024).toFixed(2)} KB</p>
+                          <p className="text-secondary text-xs mono mt-1">{formatFileSize(file.size)}</p>
                           <p className="text-teal text-xs font-semibold mt-3">File Loaded. Ready to run console.</p>
                         </div>
                       ) : (
@@ -1564,7 +1572,7 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
                           <tr key={idx} className="history-row" onClick={() => loadPastReport(item.id)}>
                             <td className="bold text-truncate" style={{ maxWidth: '180px' }}>{item.filename}</td>
                             <td className="text-teal text-xs">{item.file_type.split(" (")[0]}</td>
-                            <td className="mono text-xs">{(item.size / 1024).toFixed(1)} KB</td>
+                            <td className="mono text-xs">{formatFileSize(item.size)}</td>
                             <td className="mono bold">{item.risk_score}/100</td>
                             <td>
                               <span className={`badge badge-${item.threat_level.toLowerCase()}`}>

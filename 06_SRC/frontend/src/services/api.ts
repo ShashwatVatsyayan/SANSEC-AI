@@ -288,7 +288,7 @@ const MOCK_HISTORY: HistoryItem[] = [
 
 const MOCK_SETTINGS: WorkspaceSettings = {
   active_ai_model: "gemini-1.5-pro",
-  max_file_size_mb: 50,
+  max_file_size_mb: 5000,
   automatic_virustotal_lookup: true
 };
 

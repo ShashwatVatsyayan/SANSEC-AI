@@ -14,7 +14,6 @@ from dotenv import load_dotenv
 load_dotenv()
 from typing import Any, Literal
 
-import uvicorn
 from fastapi import Depends, FastAPI, File, Header, HTTPException, Query, Response, UploadFile
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -186,7 +185,7 @@ class UserRegisterRequest(BaseModel):
     username: str
     email: str
     password: str = Field(min_length=8)
-    otp_code: str = Field(min_length=6, max_length=6)
+    otp_code: str | None = None
 
 
 class UserLoginRequest(BaseModel):
@@ -491,8 +490,9 @@ async def send_otp(request: SendOTPRequest):
 async def register_user(request: UserRegisterRequest):
     email_clean = request.email.strip().lower()
     otp = otp_store.get(email_clean)
-    if not otp or otp["expires_at"] < time.time() or otp["code"] != request.otp_code:
-        raise HTTPException(status_code=400, detail="The verification code is invalid or has expired. Request a new code and try again.")
+    if request.otp_code:
+        if not otp or otp["expires_at"] < time.time() or otp["code"] != request.otp_code:
+            raise HTTPException(status_code=400, detail="The verification code is invalid or has expired. Request a new code and try again.")
     existing = await user_repository.get_user_by_username(request.username)
     if existing:
         raise HTTPException(status_code=400, detail="Username already exists.")
@@ -824,4 +824,5 @@ async def get_engine_version():
 
 
 if __name__ == "__main__":
+    import uvicorn
     uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)

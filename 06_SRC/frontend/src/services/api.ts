@@ -277,9 +277,101 @@ const MOCK_NOTIFICATIONS = [
   { id: "not_3", message: "SanSec analysis gateway active on port 8000", severity: "info", timestamp: new Date(Date.now() - 86400000).toISOString() }
 ];
 
+interface StoredUserAccount {
+  id: string;
+  username: string;
+  email: string;
+  passwordHash: string;
+  role: "Admin" | "Analyst" | "Guest";
+  created_at: string;
+}
+
+const DEFAULT_ACCOUNTS: StoredUserAccount[] = [
+  {
+    id: "usr_admin",
+    username: "admin",
+    email: "admin@sansec.ai",
+    passwordHash: "admin123",
+    role: "Admin",
+    created_at: "2026-01-01T00:00:00Z"
+  },
+  {
+    id: "usr_analyst",
+    username: "analyst",
+    email: "analyst@sansec.ai",
+    passwordHash: "sansec2026",
+    role: "Analyst",
+    created_at: "2026-01-01T00:00:00Z"
+  }
+];
+
+export const registeredUsersManager = {
+  getAccounts: (): StoredUserAccount[] => {
+    const raw = localStorage.getItem("sansec_registered_accounts");
+    if (!raw) {
+      localStorage.setItem("sansec_registered_accounts", JSON.stringify(DEFAULT_ACCOUNTS));
+      return DEFAULT_ACCOUNTS;
+    }
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    } catch (e) {}
+    return DEFAULT_ACCOUNTS;
+  },
+
+  isEmailRegistered: (email: string): boolean => {
+    const accounts = registeredUsersManager.getAccounts();
+    return accounts.some(a => a.email.toLowerCase().trim() === email.toLowerCase().trim());
+  },
+
+  addAccount: (username: string, email: string, passwordHash: string): UserResponse => {
+    const accounts = registeredUsersManager.getAccounts();
+    const existing = accounts.find(
+      a => a.email.toLowerCase().trim() === email.toLowerCase().trim() || 
+           a.username.toLowerCase().trim() === username.toLowerCase().trim()
+    );
+    if (existing) {
+      throw new Error("An account with this email address or username identity is already registered.");
+    }
+    const newAccount: StoredUserAccount = {
+      id: "usr_" + Math.random().toString(36).substring(2, 9),
+      username: username.trim(),
+      email: email.toLowerCase().trim(),
+      passwordHash,
+      role: "Analyst",
+      created_at: new Date().toISOString()
+    };
+    accounts.push(newAccount);
+    localStorage.setItem("sansec_registered_accounts", JSON.stringify(accounts));
+    const profile: UserResponse = {
+      id: newAccount.id,
+      username: newAccount.username,
+      email: newAccount.email,
+      role: newAccount.role,
+      created_at: newAccount.created_at,
+      auth_provider: "local"
+    };
+    tokenManager.setUserProfile(profile);
+    return profile;
+  },
+
+  findValidAccount: (identity: string, passwordInput: string): StoredUserAccount | null => {
+    const accounts = registeredUsersManager.getAccounts();
+    const target = identity.toLowerCase().trim();
+    const matched = accounts.find(
+      a => (a.username.toLowerCase().trim() === target || a.email.toLowerCase().trim() === target) && 
+           a.passwordHash === passwordInput
+    );
+    return matched || null;
+  }
+};
+
 export const api = {
   auth: {
     register: async (username: string, email: string, password: string): Promise<UserResponse> => {
+      if (registeredUsersManager.isEmailRegistered(email)) {
+        throw new Error("This email is already registered. Please sign in with your credentials.");
+      }
       try {
         const res = await apiFetch("/api/auth/register", {
           method: "POST",
@@ -291,28 +383,15 @@ export const api = {
           tokenManager.setUserProfile(profile);
           return profile;
         }
-        const err = await res.json();
-        throw new Error(err.message || "Registration failed.");
-      } catch (e: any) {
-        if (e.message && e.message !== "Registration failed.") throw e;
-        const profile: UserResponse = {
-          id: "usr_" + Math.random().toString(36).substring(2, 9),
-          username,
-          email,
-          role: "Analyst",
-          created_at: new Date().toISOString(),
-          auth_provider: "local"
-        };
-        tokenManager.setUserProfile(profile);
-        return profile;
-      }
+      } catch (e: any) {}
+      return registeredUsersManager.addAccount(username, email, password);
     },
 
-    login: async (username: string, password: string): Promise<any> => {
+    login: async (identity: string, passwordInput: string): Promise<any> => {
       try {
         const res = await apiFetch("/api/auth/login", {
           method: "POST",
-          body: { username, password },
+          body: { username: identity, password: passwordInput },
           noAuth: true
         });
         if (res.ok) {
@@ -320,28 +399,26 @@ export const api = {
           tokenManager.setTokens(data.access_token, data.refresh_token);
           return data;
         }
-        const err = await res.json();
-        throw new Error(err.message || "Invalid credentials.");
-      } catch (e: any) {
-        if ((username === "admin" && password === "admin123") || 
-            (username === "analyst" && password === "sansec2026") ||
-            (username && password.length >= 6)) {
-          const access = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mock_access_token";
-          const refresh = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mock_refresh_token";
-          tokenManager.setTokens(access, refresh);
-          const profile: UserResponse = {
-            id: "usr_" + Math.random().toString(36).substring(2, 9),
-            username: username,
-            email: `${username.toLowerCase()}@sansec.ai`,
-            role: username === "admin" ? "Admin" : "Analyst",
-            created_at: new Date().toISOString(),
-            auth_provider: "local"
-          };
-          tokenManager.setUserProfile(profile);
-          return { access_token: access, refresh_token: refresh, token_type: "bearer" };
-        }
-        throw new Error("Access Denied: Invalid credentials.");
+      } catch (e: any) {}
+
+      // Strict validation against registered user accounts
+      const validAccount = registeredUsersManager.findValidAccount(identity, passwordInput);
+      if (validAccount) {
+        const access = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mock_access_token";
+        const refresh = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mock_refresh_token";
+        tokenManager.setTokens(access, refresh);
+        const profile: UserResponse = {
+          id: validAccount.id,
+          username: validAccount.username,
+          email: validAccount.email,
+          role: validAccount.role,
+          created_at: validAccount.created_at,
+          auth_provider: "local"
+        };
+        tokenManager.setUserProfile(profile);
+        return { access_token: access, refresh_token: refresh, token_type: "bearer" };
       }
+      throw new Error("Access Denied: Unregistered email or invalid password. Please create a profile first.");
     },
 
     loginGoogle: async (email: string, name?: string): Promise<UserResponse> => {

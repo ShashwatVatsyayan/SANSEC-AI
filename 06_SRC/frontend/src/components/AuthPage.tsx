@@ -1,13 +1,14 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Shield, Mail, Lock, User as UserIcon, AlertTriangle, KeyRound, Globe, ArrowLeft } from "lucide-react";
+import { Shield, Mail, Lock, User as UserIcon, AlertTriangle, KeyRound, Globe, ArrowLeft, Key, CheckCircle2 } from "lucide-react";
 import { useAuth } from "../context/AuthContext.tsx";
+import { registeredUsersManager } from "../services/api.ts";
 
 export const AuthPage: React.FC = () => {
   const { login, loginGoogle, register } = useAuth();
   
-  // Tab states: 'login' | 'register' | 'forgot'
-  const [viewTab, setViewTab] = useState<"login" | "register" | "forgot">("login");
+  // Tab states: 'login' | 'register' | 'otp' | 'forgot'
+  const [viewTab, setViewTab] = useState<"login" | "register" | "otp" | "forgot">("login");
   const [showGoogleModal, setShowGoogleModal] = useState(false);
   
   // Form Fields
@@ -16,6 +17,11 @@ export const AuthPage: React.FC = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [resetEmail, setResetEmail] = useState("");
+
+  // OTP Verification state
+  const [generatedOtp, setGeneratedOtp] = useState("");
+  const [userOtpInput, setUserOtpInput] = useState("");
+  const [otpNotice, setOtpNotice] = useState("");
 
   // Google OAuth fields
   const [customGoogleEmail, setCustomGoogleEmail] = useState("");
@@ -29,7 +35,7 @@ export const AuthPage: React.FC = () => {
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!username || !password) {
-      setErrorMsg("Console username and password are required.");
+      setErrorMsg("Console identity and password key are required.");
       return;
     }
     setErrorMsg("");
@@ -47,11 +53,11 @@ export const AuthPage: React.FC = () => {
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!username || !email || !password || !confirmPassword) {
-      setErrorMsg("All parameters are required for profile activation.");
+      setErrorMsg("All fields are required to initiate profile registration.");
       return;
     }
     if (!/\S+@\S+\.\S+/.test(email)) {
-      setErrorMsg("Invalid email scope address.");
+      setErrorMsg("Please enter a valid email address (e.g. analyst@company.com).");
       return;
     }
     if (password.length < 8) {
@@ -63,13 +69,45 @@ export const AuthPage: React.FC = () => {
       return;
     }
 
+    if (registeredUsersManager.isEmailRegistered(email)) {
+      setErrorMsg("This email address is already registered. Please sign in directly.");
+      return;
+    }
+
+    setErrorMsg("");
+    setLoading(true);
+
+    // Generate 6-digit OTP code for email verification
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    setGeneratedOtp(code);
+    setUserOtpInput("");
+    setOtpNotice(`Security OTP code dispatched to ${email}: ${code}`);
+    
+    setTimeout(() => {
+      setLoading(false);
+      setViewTab("otp");
+    }, 800);
+  };
+
+  const handleOtpSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!userOtpInput) {
+      setErrorMsg("Please enter the 6-digit verification code sent to your email.");
+      return;
+    }
+    if (userOtpInput.trim() !== generatedOtp) {
+      setErrorMsg("Invalid OTP code. Please enter the correct verification code.");
+      return;
+    }
+
     setErrorMsg("");
     setLoading(true);
 
     try {
       await register(username, email, password);
+      setSuccessMsg("Email verified! Profile created and session activated.");
     } catch (err: any) {
-      setErrorMsg(err.message || "Failed to register profile. User might already exist.");
+      setErrorMsg(err.message || "Failed to complete profile registration.");
     } finally {
       setLoading(false);
     }
@@ -78,24 +116,23 @@ export const AuthPage: React.FC = () => {
   const handleForgotSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!resetEmail) {
-      setErrorMsg("Email address is required.");
+      setErrorMsg("Registered email address is required.");
       return;
     }
     setErrorMsg("");
     setLoading(true);
 
-    // Simulate reset link dispatch
     setTimeout(() => {
       setLoading(false);
-      setSuccessMsg("If this identity exists, a reset token has been dispatched.");
+      setSuccessMsg("If this registered identity exists, a reset token link has been dispatched.");
       setResetEmail("");
     }, 1200);
   };
 
   // Google Account sign-in execution
   const executeGoogleAuth = async (targetEmail: string, targetName?: string) => {
-    if (!targetEmail) {
-      setErrorMsg("Please provide or select a valid Google Account email.");
+    if (!targetEmail || !/\S+@\S+\.\S+/.test(targetEmail)) {
+      setErrorMsg("Please enter a valid Google Workspace email address (e.g. name@gmail.com).");
       return;
     }
     setLoading(true);
@@ -296,6 +333,56 @@ export const AuthPage: React.FC = () => {
                   Sign In
                 </button>
               </div>
+            </motion.form>
+          )}
+
+          {viewTab === "otp" && (
+            <motion.form 
+              key="otp"
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 10 }}
+              onSubmit={handleOtpSubmit}
+              className="login-form"
+            >
+              <div className="text-center mb-2">
+                <h4 className="text-sm font-bold text-primary">Verify Email OTP</h4>
+                <p className="text-xs text-secondary mt-1">A 6-digit verification code was sent to <strong className="text-gold">{email}</strong></p>
+              </div>
+
+              {otpNotice && (
+                <div className="p-3 bg-gold/10 border border-gold/30 rounded-lg text-xs text-gold font-mono text-center mb-2 animate-pulse">
+                  {otpNotice}
+                </div>
+              )}
+
+              <div className="form-group">
+                <label>6-Digit Verification Code</label>
+                <div className="input-wrapper">
+                  <Key className="input-icon text-gold" size={16} />
+                  <input 
+                    type="text" 
+                    maxLength={6}
+                    placeholder="e.g. 482910"
+                    value={userOtpInput}
+                    onChange={(e) => setUserOtpInput(e.target.value)}
+                    className="login-input text-center tracking-widest font-mono text-lg"
+                  />
+                </div>
+              </div>
+
+              <button type="submit" disabled={loading} className="btn-primary w-full login-btn">
+                {loading ? <div className="auth-spinner"></div> : "Verify OTP & Activate Profile"}
+              </button>
+
+              <button 
+                type="button" 
+                onClick={() => { setViewTab("register"); setErrorMsg(""); }}
+                className="btn-secondary w-full flex items-center justify-center gap-2 mt-2"
+                style={{ padding: '10px', fontSize: '0.8rem' }}
+              >
+                <ArrowLeft size={14} /> Back to Profile Details
+              </button>
             </motion.form>
           )}
 

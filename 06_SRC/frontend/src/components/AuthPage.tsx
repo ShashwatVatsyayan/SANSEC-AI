@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Shield, Mail, Lock, User as UserIcon, AlertTriangle, KeyRound, Globe, ArrowLeft, Key, CheckCircle2 } from "lucide-react";
+import { Shield, Mail, Lock, User as UserIcon, AlertTriangle, KeyRound, Globe, ArrowLeft, Key, CheckCircle2, ShieldCheck } from "lucide-react";
 import { useAuth } from "../context/AuthContext.tsx";
 import { rememberedCredentialsManager, BASE_URL } from "../services/api.ts";
 

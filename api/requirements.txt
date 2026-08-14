@@ -1,7 +1,6 @@
-# Vercel-compatible Python dependencies for api/index.py serverless function
-# NOTE: Excludes C-extension packages that cannot build in Vercel's environment:
-#   - lief (C++ binary analysis library - no pre-built wheels for Vercel Linux)
-#   - yara-python (C extension - imported lazily with try/except in code)
+# Requirements for the Vercel Python serverless function at api/index.py
+# This file is used by Vercel's Python runtime during deployment.
+# It mirrors the root requirements.txt (Vercel checks both locations).
 fastapi>=0.115.0
 uvicorn>=0.30.0
 motor>=3.6.0

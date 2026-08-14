@@ -2,7 +2,7 @@
   "version": 2,
   "buildCommand": "cd 06_SRC/frontend && npm install && npm run build",
   "outputDirectory": "06_SRC/frontend/dist",
-  "framework": null,
+  "framework": "vite",
   "functions": {
     "api/index.py": {
       "runtime": "python3.12",

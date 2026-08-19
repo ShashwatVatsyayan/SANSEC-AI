@@ -2032,6 +2032,44 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
           )}
         </AnimatePresence>
         </div>
+        {/* ── Mobile Bottom Tab Navigation (hidden on desktop via CSS) ── */}
+        <nav className="mobile-bottom-nav">
+          <button
+            className={`mobile-nav-item ${activeTab === "dashboard" ? "active" : ""}`}
+            onClick={() => { setActiveTab("dashboard"); setSelectedReport(null); }}
+          >
+            <span className="mobile-nav-icon-wrap"><TrendingUp size={18} /></span>
+            <span className="mobile-nav-label">Home</span>
+          </button>
+          <button
+            className={`mobile-nav-item ${activeTab === "scanner" ? "active" : ""}`}
+            onClick={() => setActiveTab("scanner")}
+          >
+            <span className="mobile-nav-icon-wrap"><Cpu size={18} /></span>
+            <span className="mobile-nav-label">Scan</span>
+          </button>
+          <button
+            className={`mobile-nav-item ${activeTab === "analytics" ? "active" : ""}`}
+            onClick={() => setActiveTab("analytics")}
+          >
+            <span className="mobile-nav-icon-wrap"><FileCode size={18} /></span>
+            <span className="mobile-nav-label">Threats</span>
+          </button>
+          <button
+            className={`mobile-nav-item ${activeTab === "history" ? "active" : ""}`}
+            onClick={() => setActiveTab("history")}
+          >
+            <span className="mobile-nav-icon-wrap"><HistIcon size={18} /></span>
+            <span className="mobile-nav-label">History</span>
+          </button>
+          <button
+            className={`mobile-nav-item ${activeTab === "settings" ? "active" : ""}`}
+            onClick={() => setActiveTab("settings")}
+          >
+            <span className="mobile-nav-icon-wrap"><Settings size={18} /></span>
+            <span className="mobile-nav-label">Settings</span>
+          </button>
+        </nav>
       </main>
     </div>
   );

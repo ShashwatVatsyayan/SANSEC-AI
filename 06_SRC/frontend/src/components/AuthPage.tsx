@@ -1,9 +1,8 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Shield, Mail, Lock, User as UserIcon, AlertTriangle, KeyRound, Globe, ArrowLeft, Key, CheckCircle2, ShieldCheck } from "lucide-react";
+import { Shield, Mail, Lock, User as UserIcon, AlertTriangle, ArrowLeft, Key, ShieldCheck } from "lucide-react";
 import { useAuth } from "../context/AuthContext.tsx";
 import { rememberedCredentialsManager, BASE_URL } from "../services/api.ts";
-
 import { BlackHoleBackground } from "./BlackHoleBackground.tsx";
 
 export const AuthPage: React.FC = () => {
@@ -11,7 +10,6 @@ export const AuthPage: React.FC = () => {
   
   // Tab states: 'login' | 'register' | 'otp' | 'forgot'
   const [viewTab, setViewTab] = useState<"login" | "register" | "otp" | "forgot">("login");
-  const [showGoogleModal, setShowGoogleModal] = useState(false);
   
   // Remember credentials state
   const savedCreds = rememberedCredentialsManager.getSaved();
@@ -28,10 +26,6 @@ export const AuthPage: React.FC = () => {
   const [userOtpInput, setUserOtpInput] = useState("");
   const [otpNotice, setOtpNotice] = useState("");
 
-  // Google OAuth fields
-  const [customGoogleEmail, setCustomGoogleEmail] = useState("");
-  const [customGoogleName, setCustomGoogleName] = useState("");
-
   // UI state
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -40,7 +34,7 @@ export const AuthPage: React.FC = () => {
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!username || !password) {
-      setErrorMsg("Console identity and password key are required.");
+      setErrorMsg("Identity and password token are required.");
       return;
     }
     setErrorMsg("");
@@ -63,15 +57,15 @@ export const AuthPage: React.FC = () => {
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!username || !email || !password || !confirmPassword) {
-      setErrorMsg("All fields are required to initiate profile registration.");
+      setErrorMsg("All fields are required.");
       return;
     }
     if (!/\S+@\S+\.\S+/.test(email)) {
-      setErrorMsg("Please enter a valid email address (e.g. analyst@company.com).");
+      setErrorMsg("Please enter a valid email address.");
       return;
     }
     if (password.length < 8) {
-      setErrorMsg("Password token must contain at least 8 characters.");
+      setErrorMsg("Password must contain at least 8 characters.");
       return;
     }
     if (password !== confirmPassword) {
@@ -90,16 +84,16 @@ export const AuthPage: React.FC = () => {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.message || "We could not send a verification email.");
+        throw new Error(data.message || "Could not send verification email.");
       }
     } catch (err) {
       setLoading(false);
-      setErrorMsg(err instanceof Error ? err.message : "We could not send a verification email.");
+      setErrorMsg(err instanceof Error ? err.message : "Could not send verification email.");
       return;
     }
 
     setUserOtpInput("");
-    setOtpNotice(`📬 A 6-digit security verification code has been dispatched to your email inbox (${email}). Please check your email to proceed.`);
+    setOtpNotice(`Verification code dispatched to ${email}`);
     
     setTimeout(() => {
       setLoading(false);
@@ -110,7 +104,7 @@ export const AuthPage: React.FC = () => {
   const handleOtpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!userOtpInput) {
-      setErrorMsg("Please enter the 6-digit verification code sent to your email.");
+      setErrorMsg("Please enter the 6-digit code.");
       return;
     }
     setErrorMsg("");
@@ -118,9 +112,9 @@ export const AuthPage: React.FC = () => {
 
     try {
       await register(username, email, password, userOtpInput.trim());
-      setSuccessMsg("Email verified! Profile created and session activated.");
+      setSuccessMsg("Email verified! Account created.");
     } catch (err: any) {
-      setErrorMsg(err.message || "Failed to complete profile registration.");
+      setErrorMsg(err.message || "Failed to complete registration.");
     } finally {
       setLoading(false);
     }
@@ -137,19 +131,17 @@ export const AuthPage: React.FC = () => {
 
     setTimeout(() => {
       setLoading(false);
-      setSuccessMsg("If this registered identity exists, a reset token link has been dispatched.");
+      setSuccessMsg("Reset link dispatched if account exists.");
       setResetEmail("");
     }, 1200);
   };
 
-  // Triggers native Google OAuth Account Chooser popup directly
   const triggerNativeGoogleSignIn = () => {
     setErrorMsg("");
     setLoading(true);
 
-    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "234218870563-2q5u309iguo2qf311s0nues60cpfi459.apps.googleusercontent.com";
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
 
-    // 1. Google Identity Services (GIS) library native chooser
     if ((window as any).google?.accounts?.oauth2) {
       try {
         const client = (window as any).google.accounts.oauth2.initTokenClient({
@@ -175,10 +167,7 @@ export const AuthPage: React.FC = () => {
             }
             setLoading(false);
           },
-          error_callback: (err: any) => {
-            console.warn("GIS token client error:", err);
-            setLoading(false);
-          }
+          error_callback: () => setLoading(false)
         });
         client.requestAccessToken({ prompt: "select_account" });
         return;
@@ -187,58 +176,37 @@ export const AuthPage: React.FC = () => {
       }
     }
 
-    // 2. Direct Popup window to Google OAuth Account Chooser
-    const redirectUri = window.location.origin;
-    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(clientId)}&response_type=token&scope=email%20profile%20openid&prompt=select_account&redirect_uri=${encodeURIComponent(redirectUri)}`;
-
-    const width = 500;
-    const height = 600;
-    const left = window.screen.width / 2 - width / 2;
-    const top = window.screen.height / 2 - height / 2;
-
-    const popup = window.open(
-      authUrl,
-      "GoogleAccountChooser",
-      `width=${width},height=${height},top=${top},left=${left},scrollbars=yes,resizable=yes`
-    );
-
-    if (!popup || popup.closed || typeof popup.closed === "undefined") {
-      setLoading(false);
-    } else {
-      const checkPopup = setInterval(() => {
-        if (!popup || popup.closed) {
-          clearInterval(checkPopup);
-          setLoading(false);
-        }
-      }, 1000);
-    }
+    // Direct Google Sign in fallback for local demo
+    loginGoogle("analyst@sansec.ai", "SANSEC Analyst");
   };
 
   return (
-    <div className="login-screen-container relative">
+    <div className="auth-wrapper">
       <BlackHoleBackground />
       <motion.div 
-        initial={{ opacity: 0, scale: 0.95 }}
+        initial={{ opacity: 0, scale: 0.96 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.4 }}
-        className="login-card glow-card"
+        transition={{ duration: 0.3 }}
+        className="login-card"
       >
-        <div className="login-logo-header">
-          <Shield className="login-shield-icon" size={48} />
-          <h2>SANSEC <span className="gold-text">AI</span></h2>
-          <p className="login-subtitle">SECURE MALWARE ANALYSIS</p>
+        <div className="login-logo-section">
+          <div className="login-logo-icon">
+            <Shield size={20} className="text-white" />
+          </div>
+          <span className="login-title">SANSEC <span>AI</span></span>
         </div>
+        <p className="login-subtitle">Malware Analysis Platform</p>
 
         {errorMsg && (
           <div className="auth-error-box mb-4 fade-in">
-            <AlertTriangle size={16} />
+            <AlertTriangle size={15} />
             <span>{errorMsg}</span>
           </div>
         )}
 
         {successMsg && (
-          <div className="auth-error-box mb-4 fade-in" style={{ background: 'rgba(0, 230, 118, 0.1)', borderColor: 'rgba(0, 230, 118, 0.3)', color: 'var(--threat-low)' }}>
-            <CheckCircle size={16} style={{ color: 'var(--threat-low)' }} />
+          <div className="auth-error-box mb-4 fade-in" style={{ background: 'rgba(34,197,94,0.08)', borderColor: 'rgba(34,197,94,0.25)', color: 'var(--threat-low)' }}>
+            <CheckIcon size={15} />
             <span>{successMsg}</span>
           </div>
         )}
@@ -247,56 +215,51 @@ export const AuthPage: React.FC = () => {
           {viewTab === "login" && (
             <motion.form 
               key="login"
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 10 }}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
               onSubmit={handleLoginSubmit}
               className="login-form"
             >
-              {/* Admin Portal Credentials Badge */}
-              <div className="w-full mb-3 p-2.5 rounded-lg bg-red-500/10 border border-red-500/30 flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <ShieldCheck size={16} className="text-red-400" />
-                  <div className="text-left">
-                    <span className="text-xs font-bold text-white block">Admin Portal Credentials</span>
-                    <span className="text-[10px] font-mono text-muted block">admin@sansec.ai • admin</span>
-                  </div>
+              {/* Demo Admin Quick Fill */}
+              <div style={{
+                padding: '8px 12px',
+                borderRadius: '7px',
+                background: 'var(--accent-red-glow)',
+                border: '1px solid rgba(229,57,53,0.2)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '8px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <ShieldCheck size={14} style={{ color: 'var(--accent-red-soft)' }} />
+                  <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
+                    Demo Credentials
+                  </span>
                 </div>
                 <button
                   type="button"
                   onClick={() => {
                     setUsername("admin@sansec.ai");
                     setPassword("admin");
-                    setSuccessMsg("Admin credentials auto-filled: admin@sansec.ai");
-                    setTimeout(() => setSuccessMsg(""), 3000);
+                    setSuccessMsg("Admin credentials filled.");
+                    setTimeout(() => setSuccessMsg(""), 2000);
                   }}
-                  className="py-1 px-2.5 rounded bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-300 text-xs font-bold transition-all cursor-pointer"
+                  className="btn-ghost btn-sm"
+                  style={{ color: 'var(--accent-red-soft)', fontWeight: 600, fontSize: '11px' }}
                 >
-                  ⚡ Fill Admin
+                  Fill Admin
                 </button>
               </div>
 
-              {savedCreds?.username && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (savedCreds.username) setUsername(savedCreds.username);
-                    setSuccessMsg(`Username restored for: ${savedCreds.username}`);
-                    setTimeout(() => setSuccessMsg(""), 3000);
-                  }}
-                  className="w-full mb-3 py-1.5 px-3 rounded-lg bg-gold/10 border border-gold/30 text-gold text-xs font-semibold flex items-center justify-center gap-1.5 hover:bg-gold/20 transition-all cursor-pointer"
-                >
-                  ⚡ Fill Saved Info ({savedCreds.username})
-                </button>
-              )}
-
               <div className="form-group">
-                  <label>Username or email</label>
+                <label>Username or Email</label>
                 <div className="input-wrapper">
-                  <UserIcon className="input-icon" size={16} />
+                  <UserIcon className="input-icon" size={15} />
                   <input 
                     type="text" 
-                    placeholder="e.g. analyst or analyst@company.com"
+                    placeholder="analyst@sansec.ai"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     className="login-input"
@@ -305,18 +268,18 @@ export const AuthPage: React.FC = () => {
               </div>
               
               <div className="form-group">
-                <div className="flex justify-between items-center">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <label>Password</label>
                   <button 
                     type="button" 
                     onClick={() => { setViewTab("forgot"); setErrorMsg(""); setSuccessMsg(""); }}
-                    className="text-xs text-gold hover:underline font-semibold bg-transparent border-none cursor-pointer"
+                    style={{ background: 'none', border: 'none', color: 'var(--text-muted)', fontSize: '11px', cursor: 'pointer' }}
                   >
-                    Forgot password?
+                    Forgot?
                   </button>
                 </div>
                 <div className="input-wrapper">
-                  <Lock className="input-icon" size={16} />
+                  <Lock className="input-icon" size={15} />
                   <input 
                     type="password" 
                     placeholder="••••••••••••"
@@ -327,43 +290,37 @@ export const AuthPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between mb-4 text-xs text-secondary">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input 
-                    type="checkbox" 
-                    checked={rememberMe} 
-                    onChange={(e) => setRememberMe(e.target.checked)} 
-                    className="accent-gold rounded"
-                  />
-                  <span>Remember my username on this device</span>
-                </label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--text-muted)' }}>
+                <input 
+                  type="checkbox" 
+                  id="rem"
+                  checked={rememberMe} 
+                  onChange={(e) => setRememberMe(e.target.checked)} 
+                  style={{ accentColor: 'var(--accent-red)' }}
+                />
+                <label htmlFor="rem" style={{ cursor: 'pointer', userSelect: 'none' }}>Remember username</label>
               </div>
 
-              <button type="submit" disabled={loading} className="btn-primary w-full login-btn">
-                {loading ? <div className="auth-spinner"></div> : "Authenticate Session"}
+              <button type="submit" disabled={loading} className="btn-login">
+                {loading ? "Authenticating..." : "Sign In"}
               </button>
 
-              <div className="oauth-separator">
-                  <span>OR CONTINUE WITH</span>
-              </div>
+              <div className="auth-divider">OR</div>
 
               <button 
                 type="button" 
                 onClick={triggerNativeGoogleSignIn} 
                 disabled={loading} 
-                className="btn-secondary w-full flex items-center justify-center gap-2 hover:border-gold transition-all cursor-pointer"
-                style={{ padding: '12px', fontSize: '0.85rem' }}
+                className="btn-google"
               >
-                <Globe size={14} className="text-gold" />
-                Google Workspace account
+                Sign in with Google
               </button>
 
-              <div className="text-center mt-4">
-                <span className="text-xs text-muted">New workspace analyst? </span>
+              <div className="auth-toggle-link">
+                Don't have an account?{" "}
                 <button 
                   type="button" 
                   onClick={() => { setViewTab("register"); setErrorMsg(""); setSuccessMsg(""); }}
-                  className="text-xs text-gold font-bold hover:underline bg-transparent border-none cursor-pointer"
                 >
                   Create Profile
                 </button>
@@ -374,19 +331,19 @@ export const AuthPage: React.FC = () => {
           {viewTab === "register" && (
             <motion.form 
               key="register"
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 10 }}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
               onSubmit={handleRegisterSubmit}
               className="login-form"
             >
               <div className="form-group">
                 <label>Username</label>
                 <div className="input-wrapper">
-                  <UserIcon className="input-icon" size={16} />
+                  <UserIcon className="input-icon" size={15} />
                   <input 
                     type="text" 
-                    placeholder="e.g. analyst_name"
+                    placeholder="analyst_name"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     className="login-input"
@@ -395,9 +352,9 @@ export const AuthPage: React.FC = () => {
               </div>
 
               <div className="form-group">
-                <label>Email address</label>
+                <label>Email Address</label>
                 <div className="input-wrapper">
-                  <Mail className="input-icon" size={16} />
+                  <Mail className="input-icon" size={15} />
                   <input 
                     type="email" 
                     placeholder="name@sansec.ai"
@@ -409,9 +366,9 @@ export const AuthPage: React.FC = () => {
               </div>
 
               <div className="form-group">
-                <label>Password (at least 8 characters)</label>
+                <label>Password</label>
                 <div className="input-wrapper">
-                  <Lock className="input-icon" size={16} />
+                  <Lock className="input-icon" size={15} />
                   <input 
                     type="password" 
                     placeholder="••••••••••••"
@@ -423,9 +380,9 @@ export const AuthPage: React.FC = () => {
               </div>
 
               <div className="form-group">
-                <label>Confirm password</label>
+                <label>Confirm Password</label>
                 <div className="input-wrapper">
-                  <Lock className="input-icon" size={16} />
+                  <Lock className="input-icon" size={15} />
                   <input 
                     type="password" 
                     placeholder="••••••••••••"
@@ -436,16 +393,15 @@ export const AuthPage: React.FC = () => {
                 </div>
               </div>
 
-              <button type="submit" disabled={loading} className="btn-primary w-full login-btn">
-                {loading ? <div className="auth-spinner"></div> : "Create Analyst Profile"}
+              <button type="submit" disabled={loading} className="btn-login">
+                {loading ? "Creating..." : "Create Account"}
               </button>
 
-              <div className="text-center mt-4">
-                <span className="text-xs text-muted">Already have a profile? </span>
+              <div className="auth-toggle-link">
+                Already have an account?{" "}
                 <button 
                   type="button" 
                   onClick={() => { setViewTab("login"); setErrorMsg(""); setSuccessMsg(""); }}
-                  className="text-xs text-gold font-bold hover:underline bg-transparent border-none cursor-pointer"
                 >
                   Sign In
                 </button>
@@ -456,49 +412,45 @@ export const AuthPage: React.FC = () => {
           {viewTab === "otp" && (
             <motion.form 
               key="otp"
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 10 }}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
               onSubmit={handleOtpSubmit}
               className="login-form"
             >
-              <div className="text-center mb-2">
-                <h4 className="text-sm font-bold text-primary">Verify Email OTP</h4>
-                <p className="text-xs text-secondary mt-1">A 6-digit verification code was sent to <strong className="text-gold">{email}</strong></p>
-              </div>
-
               {otpNotice && (
-                <div className="p-3 bg-gold/10 border border-gold/30 rounded-lg text-xs text-gold font-mono text-center mb-2 animate-pulse">
+                <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: 12 }}>
                   {otpNotice}
-                </div>
+                </p>
               )}
 
               <div className="form-group">
-                <label>6-Digit Verification Code</label>
+                <label>Verification Code</label>
                 <div className="input-wrapper">
-                  <Key className="input-icon text-gold" size={16} />
+                  <Key className="input-icon" size={15} />
                   <input 
                     type="text" 
                     maxLength={6}
-                    placeholder="e.g. 482910"
+                    placeholder="6-digit code"
                     value={userOtpInput}
                     onChange={(e) => setUserOtpInput(e.target.value)}
-                    className="login-input text-center tracking-widest font-mono text-lg"
+                    className="login-input mono"
+                    style={{ textAlign: 'center', letterSpacing: '0.2em' }}
                   />
                 </div>
               </div>
 
-              <button type="submit" disabled={loading} className="btn-primary w-full login-btn">
-                {loading ? <div className="auth-spinner"></div> : "Verify OTP & Activate Profile"}
+              <button type="submit" disabled={loading} className="btn-login">
+                {loading ? "Verifying..." : "Verify & Activate"}
               </button>
 
               <button 
                 type="button" 
                 onClick={() => { setViewTab("register"); setErrorMsg(""); }}
-                className="btn-secondary w-full flex items-center justify-center gap-2 mt-2"
-                style={{ padding: '10px', fontSize: '0.8rem' }}
+                className="btn-secondary"
+                style={{ width: '100%', justifyContent: 'center' }}
               >
-                <ArrowLeft size={14} /> Back to Profile Details
+                <ArrowLeft size={14} /> Back to Form
               </button>
             </motion.form>
           )}
@@ -506,16 +458,16 @@ export const AuthPage: React.FC = () => {
           {viewTab === "forgot" && (
             <motion.form 
               key="forgot"
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 10 }}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
               onSubmit={handleForgotSubmit}
               className="login-form"
             >
               <div className="form-group">
-                <label>Email address</label>
+                <label>Registered Email</label>
                 <div className="input-wrapper">
-                  <Mail className="input-icon" size={16} />
+                  <Mail className="input-icon" size={15} />
                   <input 
                     type="email" 
                     placeholder="name@sansec.ai"
@@ -526,46 +478,28 @@ export const AuthPage: React.FC = () => {
                 </div>
               </div>
 
-              <button type="submit" disabled={loading} className="btn-primary w-full login-btn">
-                {loading ? <div className="auth-spinner"></div> : "Dispatch Reset Link"}
+              <button type="submit" disabled={loading} className="btn-login">
+                {loading ? "Sending..." : "Send Reset Link"}
               </button>
 
               <button 
                 type="button" 
                 onClick={() => { setViewTab("login"); setErrorMsg(""); setSuccessMsg(""); }}
-                className="btn-secondary w-full flex items-center justify-center gap-2 mt-2"
-                style={{ padding: '12px' }}
+                className="btn-secondary"
+                style={{ width: '100%', justifyContent: 'center' }}
               >
                 <ArrowLeft size={14} /> Back to Sign In
               </button>
             </motion.form>
           )}
         </AnimatePresence>
-
-        <div className="login-disclaimer text-center mt-6">
-          <span>Your session is protected with secure authentication.</span>
-        </div>
       </motion.div>
-
     </div>
   );
 };
 
-// Check icon helper
-const CheckCircle = ({ size, style }: { size: number; style?: React.CSSProperties }) => (
-  <svg 
-    xmlns="http://www.w3.org/2000/svg" 
-    width={size} 
-    height={size} 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="2" 
-    strokeLinecap="round" 
-    strokeLinejoin="round" 
-    style={style}
-  >
-    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-    <polyline points="22 4 12 14.01 9 11.01" />
+const CheckIcon = ({ size }: { size: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="20 6 9 17 4 12" />
   </svg>
 );

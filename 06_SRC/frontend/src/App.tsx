@@ -690,101 +690,104 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
       />
 
       {/* Compact Icon Sidebar Navigation */}
-      <aside className={`sidebar compact-icon-sidebar ${isMobileMenuOpen ? "mobile-open" : ""}`}>
-        <nav className="nav-menu flex flex-col items-center gap-4 py-4 w-full">
+      <aside className={`sidebar ${isMobileMenuOpen ? "mobile-open" : ""}`}>
+        <div className="sidebar-logo cursor-pointer" onClick={() => { setActiveTab("dashboard"); setSelectedReport(null); }}>
+          <div className="sidebar-logo-icon">
+            <Shield size={16} className="text-white" />
+          </div>
+        </div>
+
+        <nav className="nav-menu">
           <button 
-            className={`nav-item icon-only-nav ${activeTab === "dashboard" ? "active" : ""}`}
+            className={`nav-item ${activeTab === "dashboard" ? "active" : ""}`}
             onClick={() => { setActiveTab("dashboard"); setSelectedReport(null); setIsMobileMenuOpen(false); }}
-            title="Dashboard Overview"
+            title="Security Dashboard"
           >
-            <TrendingUp size={20} />
+            <TrendingUp size={18} />
           </button>
           <button 
-            className={`nav-item icon-only-nav ${activeTab === "scanner" ? "active" : ""}`}
+            className={`nav-item ${activeTab === "scanner" ? "active" : ""}`}
             onClick={() => { setActiveTab("scanner"); setIsMobileMenuOpen(false); }}
-            title="Heuristic Scanner"
+            title="Heuristic Dissection Scanner"
           >
-            <Cpu size={20} />
+            <Cpu size={18} />
           </button>
           <button 
-            className={`nav-item icon-only-nav ${activeTab === "analytics" ? "active" : ""}`}
+            className={`nav-item ${activeTab === "analytics" ? "active" : ""}`}
             onClick={() => { setActiveTab("analytics"); setIsMobileMenuOpen(false); }}
-            title="Threat Analytics"
+            title="Threat Analytics & Trends"
           >
-            <FileCode size={20} />
+            <FileCode size={18} />
           </button>
           <button 
-            className={`nav-item icon-only-nav ${activeTab === "history" ? "active" : ""}`}
+            className={`nav-item ${activeTab === "history" ? "active" : ""}`}
             onClick={() => { setActiveTab("history"); setIsMobileMenuOpen(false); }}
-            title={`Scan Records (${history.length})`}
+            title={`Scan History (${history.length})`}
           >
-            <HistIcon size={20} />
+            <HistIcon size={18} />
           </button>
           <button 
-            className={`nav-item icon-only-nav ${activeTab === "settings" ? "active" : ""}`}
+            className={`nav-item ${activeTab === "settings" ? "active" : ""}`}
             onClick={() => { setActiveTab("settings"); setIsMobileMenuOpen(false); }}
-            title="System Settings"
+            title="Workspace Settings"
           >
-            <Settings size={20} />
+            <Settings size={18} />
           </button>
           {currentUser?.role === "Admin" && (
             <button 
-              className={`nav-item icon-only-nav ${activeTab === "admin" ? "active" : ""}`}
+              className={`nav-item ${activeTab === "admin" ? "active" : ""}`}
               onClick={() => { setActiveTab("admin"); setIsMobileMenuOpen(false); }}
-              title="Admin Users"
+              title="Admin User Management"
             >
-              <ShieldCheck size={20} />
+              <ShieldCheck size={18} />
             </button>
           )}
         </nav>
 
-        <div className="sidebar-footer flex flex-col items-center mt-auto pb-4">
-          <button onClick={handleLogout} className="nav-item icon-only-nav text-red/80 hover:text-red hover:bg-red/10" title="Sign Out Account">
-            <LogOut size={18} />
+        <div className="sidebar-footer">
+          <button onClick={handleLogout} className="nav-item" style={{ color: 'var(--accent-red-soft)' }} title="Sign Out">
+            <LogOut size={16} />
           </button>
         </div>
       </aside>
 
       {/* Main Workspace Frame */}
-      <main className="workspace-main flex flex-col flex-1 h-screen overflow-hidden">
+      <main className="workspace-main">
         {/* Top Header Bar */}
         <header className={`top-header-bar ${!isHeaderVisible ? "header-collapsed" : ""}`}>
-          <div className="flex items-center gap-4">
-            {/* Separate SANSEC AI Logo */}
-            <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => { setActiveTab("dashboard"); setSelectedReport(null); }}>
-              <Shield className="w-7 h-7 text-gold shadow-glow" />
-              <div className="flex flex-col">
-                <span className="text-base font-extrabold tracking-wider leading-tight text-white">SANSEC <span className="gold-text">AI</span></span>
-                <span className="text-[9px] font-mono tracking-widest text-muted uppercase">Malware Analysis</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div className="header-logo" onClick={() => { setActiveTab("dashboard"); setSelectedReport(null); }}>
+              <div className="header-logo-badge">
+                <Shield size={14} className="text-white" />
               </div>
+              <span className="header-wordmark">SANSEC <span>AI</span></span>
             </div>
 
-            <div className="h-6 w-[1px] bg-white/15 hidden sm:block"></div>
+            <div style={{ width: 1, height: 16, background: 'var(--border-color)' }} />
 
-            {/* Clean View Title Only */}
-            <h2 className="text-sm font-bold tracking-wide text-primary capitalize">
-              {activeTab === "dashboard" && "Dashboard"}
-              {activeTab === "scanner" && "Scanner"}
-              {activeTab === "analytics" && "Analytics"}
+            <span className="header-page-title">
+              {activeTab === "dashboard" && "Dashboard Overview"}
+              {activeTab === "scanner" && "Dissection Scanner"}
+              {activeTab === "analytics" && "Threat Analytics"}
               {activeTab === "history" && "Scan Records"}
               {activeTab === "settings" && "Settings"}
-              {activeTab === "admin" && "Admin Users"}
+              {activeTab === "admin" && "Admin Control"}
               {activeTab === "profile" && "Analyst Profile"}
-            </h2>
+            </span>
           </div>
 
-          <div className="flex items-center gap-4 relative">
-            {/* System Status Pill */}
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', position: 'relative' }}>
+            {/* Gateway Status Pill */}
+            <div className="gateway-badge">
+              <span className="dot" />
               <span>GATEWAY ACTIVE</span>
             </div>
 
-            {/* Top-Right Profile Avatar Pill */}
+            {/* Top-Right Profile Pill */}
             <button 
               onClick={() => setShowProfileDropdown(prev => !prev)}
               className="profile-pill-btn"
-              title="Open Analyst Account Menu"
+              title="Analyst Profile Menu"
             >
               {currentUser?.avatar_url ? (
                 <img src={currentUser.avatar_url} alt="Profile" className="profile-avatar-img" />
@@ -793,71 +796,74 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
                   {currentUser?.username ? currentUser.username.substring(0, 2).toUpperCase() : "AN"}
                 </div>
               )}
-              <div className="hidden sm:flex flex-col text-left">
-                <span className="text-xs font-bold text-primary leading-tight">{currentUser?.username || "Analyst"}</span>
-                <span className="text-[10px] text-gold font-mono leading-tight">{currentUser?.role || "User"}</span>
-              </div>
-              <ChevronDown size={14} className="text-muted" />
+              <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-primary)' }}>
+                {currentUser?.username || "Analyst"}
+              </span>
+              <ChevronDown size={13} style={{ color: 'var(--text-muted)' }} />
             </button>
 
             {/* Top-Right Profile Dropdown Card */}
             <AnimatePresence>
               {showProfileDropdown && (
                 <motion.div 
-                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  initial={{ opacity: 0, y: 8, scale: 0.96 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  exit={{ opacity: 0, y: 8, scale: 0.96 }}
                   className="ios-profile-dropdown"
                 >
-                  <div className="flex items-center gap-3 pb-3 mb-3 border-b border-white/10">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', paddingBottom: '10px', marginBottom: '8px', borderBottom: '1px solid var(--border-color)' }}>
                     {currentUser?.avatar_url ? (
-                      <img src={currentUser.avatar_url} alt="Profile" className="w-10 h-10 rounded-full object-cover border border-gold" />
+                      <img src={currentUser.avatar_url} alt="Profile" className="profile-avatar-img" style={{ width: 34, height: 34 }} />
                     ) : (
-                      <div className="w-10 h-10 rounded-full bg-gold/20 text-gold flex items-center justify-center font-bold text-sm border border-gold">
+                      <div className="profile-avatar-initials" style={{ width: 34, height: 34, fontSize: 12 }}>
                         {currentUser?.username ? currentUser.username.substring(0, 2).toUpperCase() : "AN"}
                       </div>
                     )}
-                    <div className="overflow-hidden">
-                      <h4 className="text-sm font-bold text-primary truncate">{currentUser?.username}</h4>
-                      <p className="text-xs text-secondary truncate">{currentUser?.email}</p>
+                    <div style={{ overflow: 'hidden' }}>
+                      <h4 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{currentUser?.username}</h4>
+                      <p style={{ fontSize: '11px', color: 'var(--text-secondary)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{currentUser?.email}</p>
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-1.5">
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     <button 
                       onClick={() => { setActiveTab("profile"); setShowProfileDropdown(false); }}
-                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-primary hover:bg-gold/10 hover:text-gold transition-colors text-left cursor-pointer"
+                      className="btn-ghost"
+                      style={{ width: '100%', justifyContent: 'flex-start' }}
                     >
-                      <User size={14} className="text-gold" />
-                      <span>👤 Open Analyst Profile</span>
+                      <User size={13} style={{ color: 'var(--accent-red-soft)' }} />
+                      <span>Analyst Profile</span>
                     </button>
 
                     <button 
                       onClick={() => { fileInputAvatarRef.current?.click(); setShowProfileDropdown(false); }}
-                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-primary hover:bg-gold/10 hover:text-gold transition-colors text-left cursor-pointer"
+                      className="btn-ghost"
+                      style={{ width: '100%', justifyContent: 'flex-start' }}
                     >
-                      <Camera size={14} className="text-teal" />
-                      <span>📷 Change Profile Picture</span>
+                      <Camera size={13} style={{ color: 'var(--accent-teal)' }} />
+                      <span>Change Avatar</span>
                     </button>
 
                     {currentUser?.avatar_url && (
                       <button 
                         onClick={() => { handleRemoveAvatar(); setShowProfileDropdown(false); }}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-red hover:bg-red/10 transition-colors text-left cursor-pointer"
+                        className="btn-ghost"
+                        style={{ width: '100%', justifyContent: 'flex-start', color: 'var(--accent-red)' }}
                       >
-                        <Trash2 size={14} className="text-red" />
-                        <span>🗑️ Remove Picture</span>
+                        <Trash2 size={13} />
+                        <span>Remove Avatar</span>
                       </button>
                     )}
 
-                    <div className="my-1 border-t border-white/10"></div>
+                    <div style={{ height: 1, background: 'var(--border-color)', margin: '4px 0' }} />
 
                     <button 
                       onClick={() => { handleLogout(); setShowProfileDropdown(false); }}
-                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-red hover:bg-red/15 transition-colors text-left cursor-pointer"
+                      className="btn-ghost"
+                      style={{ width: '100%', justifyContent: 'flex-start', color: 'var(--accent-red-soft)', fontWeight: 600 }}
                     >
-                      <LogOut size={14} />
-                      <span>Sign Out Account</span>
+                      <LogOut size={13} />
+                      <span>Sign Out</span>
                     </button>
                   </div>
                 </motion.div>
@@ -889,19 +895,19 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
 
               {/* Stats Row */}
               <div className="stats-row">
-                <div className="glow-card stat-card">
+                <div className="panel stat-card">
                   <span className="stat-label">TOTAL SCANS</span>
                   <span className="stat-value text-teal">{stats.totalScans}</span>
                 </div>
-                <div className="glow-card stat-card">
+                <div className="panel stat-card">
                   <span className="stat-label">THREATS DETECTED</span>
                   <span className="stat-value text-red">{stats.threatsDetected}</span>
                 </div>
-                <div className="glow-card stat-card">
+                <div className="panel stat-card">
                   <span className="stat-label">AVG RISK SCORE</span>
                   <span className="stat-value text-gold">{stats.avgRiskScore}/100</span>
                 </div>
-                <div className="glow-card stat-card">
+                <div className="panel stat-card">
                   <span className="stat-label">EXECUTABLES ANALYZED</span>
                   <span className="stat-value">{stats.peFilesScanned}</span>
                 </div>
@@ -909,7 +915,7 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
 
               {/* Summary dashboard section */}
               <div className="dashboard-default grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="glow-card info-card welcome-panel lg:col-span-2">
+                <div className="panel info-card welcome-panel lg:col-span-2">
                   <h3>Ready to analyze files</h3>
                   <p className="text-secondary mt-2">
                     Dissect binary samples using safe static parsing methods. Drag-and-drop file executables to parse sections structures, compile cryptographic hashes, list suspicious API call imports, and map matched behaviors to standard MITRE ATT&CK matrices.
@@ -924,7 +930,7 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
                   </div>
                 </div>
 
-                <div className="glow-card flex flex-col justify-between">
+                <div className="panel flex flex-col justify-between">
                   <div>
                     <h4 className="flex items-center gap-2"><Server size={16} className="text-teal" /> Gateway Telemetry</h4>
                     <p className="text-secondary text-xs mt-2 leading-relaxed">
@@ -944,7 +950,7 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
                 </div>
 
                 {/* Recent Activities List */}
-                <div className="glow-card lg:col-span-2">
+                <div className="panel lg:col-span-2">
                   <h4>Recent analyses</h4>
                   {history.length > 0 ? (
                     <div className="recent-list-summary mt-4">
@@ -966,7 +972,7 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
                   )}
                 </div>
 
-                <div className="glow-card">
+                <div className="panel">
                   <h4>Recent alerts</h4>
                   <div className="mt-4 flex flex-col gap-3">
                     {notifications.slice(0, 2).map((not, idx) => (
@@ -1056,7 +1062,7 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
                     {activeResultTab === "overview" && (
                       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 fade-in">
                         {/* Risk Gauge */}
-                        <div className="glow-card flex flex-col items-center justify-center p-6 text-center">
+                        <div className="panel flex flex-col items-center justify-center p-6 text-center">
                           <h4>Threat Assessment Score</h4>
                           <div className="dial-container my-4">
                             <div className="risk-dial" style={{ 
@@ -1075,7 +1081,7 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
                         </div>
 
                         {/* File Details Properties */}
-                        <div className="glow-card lg:col-span-2 info-card">
+                        <div className="panel lg:col-span-2 info-card">
                           <h4>File Properties</h4>
                           <table className="info-table">
                             <tbody>
@@ -1108,7 +1114,7 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
                         </div>
 
                         {/* Heuristic Violations Signatures */}
-                        <div className="glow-card lg:col-span-2">
+                        <div className="panel lg:col-span-2">
                           <h4>Engine Heuristic Matches</h4>
                           {selectedReport.signatures.length > 0 ? (
                             <div className="sig-list">
@@ -1128,7 +1134,7 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
                         </div>
 
                         {/* MITRE Mapping */}
-                        <div className="glow-card">
+                        <div className="panel">
                           <h4>MITRE ATT&CK Matrix Mapping</h4>
                           {selectedReport.mitre_mappings.length > 0 ? (
                             <div className="mitre-list">
@@ -1153,7 +1159,7 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
 
                     {activeResultTab === "pe" && selectedReport.pe_info && (
                       <div className="grid grid-cols-1 gap-6 fade-in">
-                        <div className="glow-card pe-card">
+                        <div className="panel pe-card">
                           <h4>Portable Executable Properties</h4>
                           <div className="pe-meta-grid">
                             <div>
@@ -1218,7 +1224,7 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
                     )}
 
                     {activeResultTab === "iocs" && (
-                      <div className="glow-card fade-in">
+                      <div className="panel fade-in">
                         <h4>Hardcoded Indicators of Compromise</h4>
                         <p className="text-secondary text-sm mt-1">Discovered network and contact details extracted from compiled text assets</p>
                         
@@ -1260,7 +1266,7 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
                     )}
 
                     {activeResultTab === "ai" && (
-                      <div className="glow-card fade-in">
+                      <div className="panel fade-in">
                         <div className="ai-card-header">
                           <div className="flex items-center gap-2">
                             <Bot className="text-gold animate-pulse" size={24} />
@@ -1313,7 +1319,7 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
                     )}
 
                     {activeResultTab === "chat" && (
-                      <div className="glow-card flex flex-col fade-in chat-console-card">
+                      <div className="panel flex flex-col fade-in chat-console-card">
                         <div className="chat-header border-b border-color pb-3">
                           <div className="flex items-center gap-3">
                             <Bot className="text-gold" size={20} />
@@ -1382,7 +1388,7 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
                   </div>
 
                   <div 
-                    className={`glow-card dropzone ${isDragging ? "dragging" : ""} ${file ? "has-file" : ""}`}
+                    className={`panel dropzone ${isDragging ? "dragging" : ""} ${file ? "has-file" : ""}`}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
@@ -1439,7 +1445,7 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
                     <div className="mt-8">
                       <h4 className="mono text-xs text-gold uppercase tracking-wider mb-3">Recent scans</h4>
                       {history.length > 0 ? (
-                        <div className="glow-card p-0 overflow-hidden">
+                        <div className="panel p-0 overflow-hidden">
                           <table className="w-full border-collapse text-left text-xs">
                             <thead>
                               <tr className="bg-secondary border-b border-color text-muted font-semibold uppercase">
@@ -1478,7 +1484,7 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
                   )}
 
                   {isScanning && (
-                    <div className="glow-card terminal-card mt-6">
+                    <div className="panel terminal-card mt-6">
                       <div className="terminal-header">
                         <span className="terminal-dot red"></span>
                         <span className="terminal-dot yellow"></span>
@@ -1521,7 +1527,7 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Donut Chart */}
-                <div className="glow-card flex flex-col items-center justify-center p-6 text-center">
+                <div className="panel flex flex-col items-center justify-center p-6 text-center">
                   <h4>Threat Severity Distribution</h4>
                   <div className="my-6 relative flex items-center justify-center" style={{ width: '200px', height: '200px' }}>
                     <svg width="180" height="180" viewBox="0 0 100 100">
@@ -1580,7 +1586,7 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
                 </div>
 
                 {/* Histogram Bar Chart */}
-                <div className="glow-card lg:col-span-2">
+                <div className="panel lg:col-span-2">
                   <h4>Threat Score Distributions</h4>
                   <p className="text-secondary text-xs mt-1">Histogram representation of threat score levels across processed samples</p>
                   
@@ -1616,7 +1622,7 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
                 </div>
 
                 {/* Data Exports */}
-                <div className="glow-card lg:col-span-3">
+                <div className="panel lg:col-span-3">
                   <h4>Database Exports</h4>
                   <div className="flex flex-wrap items-center justify-between gap-4 mt-4">
                     <p className="text-secondary text-sm">Export full platform threat registry in standard machine formats</p>
@@ -1706,7 +1712,7 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
               </div>
 
               {/* Data Table */}
-              <div className="glow-card table-card">
+              <div className="panel table-card">
                 {filteredHistory.length > 0 ? (
                   <div className="table-wrapper">
                     <table className="history-table">
@@ -1770,7 +1776,7 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
                 </div>
               </div>
 
-              <div className="glow-card max-w-2xl">
+              <div className="panel max-w-2xl">
                 {currentUser?.role !== "Admin" && (
                   <div className="mb-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center gap-2.5 text-xs text-amber-400 font-mono">
                     <Shield size={16} className="flex-shrink-0" />
@@ -1851,7 +1857,7 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
                 </div>
               </div>
 
-              <div className="glow-card table-card">
+              <div className="panel table-card">
                 <div className="table-wrapper">
                   <table className="history-table">
                     <thead>

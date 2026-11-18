@@ -19,6 +19,7 @@ import {
 import { useAuth } from "../context/AuthContext.tsx";
 import { rememberedCredentialsManager, BASE_URL } from "../services/api.ts";
 import { BlackHoleBackground } from "./BlackHoleBackground.tsx";
+import { ThemeToggle } from "./ThemeToggle.tsx";
 
 export const AuthPage: React.FC = () => {
   const { login, loginGoogle } = useAuth();
@@ -251,6 +252,8 @@ export const AuthPage: React.FC = () => {
               <span className="ref-status-indicator" />
               <span>SOC Nominal</span>
             </div>
+
+            <ThemeToggle />
 
             <button 
               type="button" 

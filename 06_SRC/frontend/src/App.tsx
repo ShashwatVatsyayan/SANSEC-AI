@@ -45,6 +45,7 @@ import { useAuth } from "./context/AuthContext.tsx";
 import { AuthPage } from "./components/AuthPage.tsx";
 import { BlackHoleBackground } from "./components/BlackHoleBackground.tsx";
 import { NotFoundPage } from "./components/NotFoundPage.tsx";
+import { ThemeToggle } from "./components/ThemeToggle.tsx";
 
 export const formatFileSize = (bytes: number): string => {
   if (!bytes || bytes <= 0) return "0 B";
@@ -826,6 +827,7 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
         </nav>
 
         <div className="sidebar-footer">
+          <ThemeToggle />
           <button 
             type="button"
             onClick={handleLogout} 
@@ -874,6 +876,9 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
               <span className="dot" />
               <span>GATEWAY ACTIVE</span>
             </div>
+
+            {/* Ink Bleed Theme Switcher */}
+            <ThemeToggle />
 
             {/* Top-Right Profile Pill */}
             <button 

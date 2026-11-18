@@ -3,6 +3,10 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
 import { AuthProvider } from './context/AuthContext.tsx'
+import { inkManager } from './ink-bleed/InkTransitionManager.ts'
+
+// Initialize Ink Bleed Theme Engine
+inkManager.init()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

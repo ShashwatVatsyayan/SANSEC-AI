@@ -52,6 +52,226 @@
   --transition-slow:   all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* ─── Light Mode Tokens (Ink Bleed Theme Switcher) ─────────────────────── */
+:root[data-theme="light"],
+html[data-theme="light"] {
+  --bg-primary:        #f8fafc;
+  --bg-secondary:      #f1f5f9;
+  --bg-tertiary:       #e2e8f0;
+  --panel-bg:          #ffffff;
+  --panel-hover:       #f8fafc;
+
+  --border-color:      rgba(0, 0, 0, 0.09);
+  --border-hover:      rgba(0, 0, 0, 0.18);
+  --border-active:     rgba(220, 38, 38, 0.55);
+
+  --text-primary:      #0f172a;
+  --text-secondary:    #334155;
+  --text-muted:        #64748b;
+
+  --shadow-sm:         0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md:         0 4px 14px -2px rgba(0, 0, 0, 0.08);
+  --shadow-lg:         0 10px 28px -3px rgba(0, 0, 0, 0.12);
+}
+
+/* ─── Ink Bleed Overlay Canvas ─────────────────────────────────────────── */
+.ink-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.ink-canvas.is-active {
+  visibility: visible;
+}
+
+/* ─── CSS Fallback Transition ─────────────────────────────────────────── */
+html.theme-fade,
+html.theme-fade *,
+html.theme-fade *::before,
+html.theme-fade *::after {
+  transition:
+    background-color var(--theme-fade, 0.45s) ease,
+    border-color var(--theme-fade, 0.45s) ease,
+    color var(--theme-fade, 0.45s) ease,
+    fill var(--theme-fade, 0.45s) ease,
+    stroke var(--theme-fade, 0.45s) ease,
+    box-shadow var(--theme-fade, 0.45s) ease !important;
+}
+
+/* ─── Ink Theme Toggle Button ─────────────────────────────────────────── */
+.theme-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  min-height: 38px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  cursor: pointer;
+  position: relative;
+  transition: var(--transition);
+  touch-action: manipulation;
+  z-index: 10001;
+}
+
+.theme-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--text-primary);
+  border-color: var(--border-hover);
+  transform: translateY(-1px);
+}
+
+.theme-toggle-icon-wrap {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ink-icon-sun,
+.ink-icon-moon {
+  position: absolute;
+  inset: 0;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+:root[data-theme="dark"] .ink-icon-sun {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+
+:root[data-theme="dark"] .ink-icon-moon {
+  opacity: 0;
+  transform: rotate(-90deg) scale(0.4);
+}
+
+:root[data-theme="light"] .ink-icon-sun {
+  opacity: 0;
+  transform: rotate(90deg) scale(0.4);
+}
+
+:root[data-theme="light"] .ink-icon-moon {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+
+:root[data-theme="light"] .theme-toggle-btn {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.12);
+  color: var(--text-secondary);
+}
+
+:root[data-theme="light"] .theme-toggle-btn:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: var(--text-primary);
+}
+
+/* Light Theme Overrides for Core Components */
+:root[data-theme="light"] body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+:root[data-theme="light"] .app-container {
+  background: var(--bg-primary);
+}
+
+:root[data-theme="light"] .sidebar {
+  background: var(--bg-secondary);
+  border-right-color: var(--border-color);
+}
+
+:root[data-theme="light"] .top-header-bar {
+  background: rgba(255, 255, 255, 0.88);
+  border-bottom-color: var(--border-color);
+}
+
+:root[data-theme="light"] .panel-card {
+  background: var(--panel-bg);
+  border-color: var(--border-color);
+  box-shadow: var(--shadow-sm);
+}
+
+:root[data-theme="light"] .ref-portal-root {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+:root[data-theme="light"] .ref-top-nav {
+  background: rgba(248, 250, 252, 0.88);
+  border-bottom-color: rgba(0, 0, 0, 0.08);
+}
+
+:root[data-theme="light"] .ref-brand-text {
+  color: #0f172a;
+}
+
+:root[data-theme="light"] .ref-auth-card {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.1);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.12);
+}
+
+:root[data-theme="light"] .ref-title {
+  color: #0f172a;
+}
+
+:root[data-theme="light"] .ref-input-ctrl {
+  background: #f1f5f9;
+  border-color: rgba(0, 0, 0, 0.1);
+  color: #0f172a;
+}
+
+:root[data-theme="light"] .ref-btn-secondary {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
+:root[data-theme="light"] .ref-method-card,
+:root[data-theme="light"] .ref-spec-modal-card {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.12);
+  color: #0f172a;
+}
+
+:root[data-theme="light"] .ref-method-title {
+  color: #0f172a;
+}
+
+:root[data-theme="light"] .ref-method-option {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+:root[data-theme="light"] .ref-method-opt-title {
+  color: #0f172a;
+}
+
+:root[data-theme="light"] .ref-spec-box {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+:root[data-theme="light"] .ref-spec-detail {
+  color: #0f172a;
+}
+
+:root[data-theme="light"] .black-hole-container {
+  opacity: 0.12;
+}
+
 /* ─── Reset & Base ──────────────────────────────────────────────────────── */
 *, *::before, *::after {
   box-sizing: border-box;

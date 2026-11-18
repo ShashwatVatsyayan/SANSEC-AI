@@ -21,7 +21,11 @@ import { rememberedCredentialsManager, BASE_URL } from "../services/api.ts";
 import { BlackHoleBackground } from "./BlackHoleBackground.tsx";
 import { ThemeToggle } from "./ThemeToggle.tsx";
 
-export const AuthPage: React.FC = () => {
+interface AuthPageProps {
+  onNavigate?: (page: string) => void;
+}
+
+export const AuthPage: React.FC<AuthPageProps> = ({ onNavigate }) => {
   const { login, loginGoogle } = useAuth();
   
   // Tab states: 'login' | 'register' | 'otp' | 'forgot'
@@ -233,28 +237,28 @@ export const AuthPage: React.FC = () => {
             <button 
               type="button" 
               className="ref-nav-link"
-              onClick={() => setActiveModalNav("Platform Architecture")}
+              onClick={() => onNavigate ? onNavigate("platform") : setActiveModalNav("Platform Architecture")}
             >
               Platform
             </button>
             <button 
               type="button" 
               className="ref-nav-link"
-              onClick={() => setActiveModalNav("Sandbox Detonation Engine")}
+              onClick={() => onNavigate ? onNavigate("detonation") : setActiveModalNav("Sandbox Detonation Engine")}
             >
               Detonation Engine
             </button>
             <button 
               type="button" 
               className="ref-nav-link"
-              onClick={() => setActiveModalNav("Threat Intelligence & Radar")}
+              onClick={() => onNavigate ? onNavigate("radar") : setActiveModalNav("Threat Intelligence & Radar")}
             >
               Threat Radar
             </button>
             <button 
               type="button" 
               className="ref-nav-link"
-              onClick={() => setActiveModalNav("Security Documentation & API")}
+              onClick={() => onNavigate ? onNavigate("research") : setActiveModalNav("Security Documentation & API")}
             >
               Research
             </button>

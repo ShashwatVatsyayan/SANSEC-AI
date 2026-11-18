@@ -46,6 +46,10 @@ import { AuthPage } from "./components/AuthPage.tsx";
 import { BlackHoleBackground } from "./components/BlackHoleBackground.tsx";
 import { NotFoundPage } from "./components/NotFoundPage.tsx";
 import { ThemeToggle } from "./components/ThemeToggle.tsx";
+import { PlatformPage } from "./components/public/PlatformPage.tsx";
+import { DetonationEnginePage } from "./components/public/DetonationEnginePage.tsx";
+import { ThreatRadarPage } from "./components/public/ThreatRadarPage.tsx";
+import { ResearchPage } from "./components/public/ResearchPage.tsx";
 
 export const formatFileSize = (bytes: number): string => {
   if (!bytes || bytes <= 0) return "0 B";
@@ -135,6 +139,11 @@ const getTabFromPath = (path: string): string => {
   if (clean === "settings") return "settings";
   if (clean === "admin") return "admin";
   if (clean === "profile") return "profile";
+  if (clean === "platform") return "platform";
+  if (clean === "detonation" || clean === "detonation-engine" || clean === "engine") return "detonation";
+  if (clean === "radar" || clean === "threat-radar") return "radar";
+  if (clean === "research" || clean === "docs") return "research";
+  if (clean === "login" || clean === "register" || clean === "auth") return "auth";
   return "404";
 };
 
@@ -729,8 +738,45 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
     );
   }
 
-  if (!isAuthenticated) {
-    return <AuthPage />;
+  // Dedicated Public Landing Pages
+  if (activeTab === "platform") {
+    return (
+      <PlatformPage 
+        onNavigate={(page) => setActiveTab(page)} 
+        onNavigateAuth={() => setActiveTab("auth")} 
+      />
+    );
+  }
+
+  if (activeTab === "detonation") {
+    return (
+      <DetonationEnginePage 
+        onNavigate={(page) => setActiveTab(page)} 
+        onNavigateAuth={() => setActiveTab("auth")} 
+      />
+    );
+  }
+
+  if (activeTab === "radar") {
+    return (
+      <ThreatRadarPage 
+        onNavigate={(page) => setActiveTab(page)} 
+        onNavigateAuth={() => setActiveTab("auth")} 
+      />
+    );
+  }
+
+  if (activeTab === "research") {
+    return (
+      <ResearchPage 
+        onNavigate={(page) => setActiveTab(page)} 
+        onNavigateAuth={() => setActiveTab("auth")} 
+      />
+    );
+  }
+
+  if (!isAuthenticated || activeTab === "auth") {
+    return <AuthPage onNavigate={(page) => setActiveTab(page)} />;
   }
 
   return (

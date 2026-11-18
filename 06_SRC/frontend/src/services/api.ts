@@ -181,6 +181,17 @@ async function apiFetch(endpoint: string, options: ApiFetchOptions = {}) {
         return fetch(url, fetchOptions);
       }
     }
+
+    if (response.status === 429) {
+      const retryAfter = response.headers.get("retry-after") || response.headers.get("Retry-After");
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("sansec-rate-limited", {
+            detail: { endpoint, retryAfter: retryAfter ? parseInt(retryAfter, 10) : 30 }
+          })
+        );
+      }
+    }
     
     return response;
   } catch (error) {
@@ -190,6 +201,19 @@ async function apiFetch(endpoint: string, options: ApiFetchOptions = {}) {
 }
 
 async function responseMessage(response: Response, fallback: string): Promise<string> {
+  if (response.status === 429) {
+    const retryAfter = response.headers.get("retry-after") || response.headers.get("Retry-After");
+    try {
+      const payload = await response.json();
+      if (payload.detail) return payload.detail;
+    } catch {
+      // ignore json parse error
+    }
+    return retryAfter
+      ? `Rate limit reached. Please wait ${retryAfter} seconds before trying again.`
+      : "Rate limit reached. Too many requests. Please wait a moment before trying again.";
+  }
+
   try {
     const payload = await response.json();
     return payload.message || payload.detail || fallback;

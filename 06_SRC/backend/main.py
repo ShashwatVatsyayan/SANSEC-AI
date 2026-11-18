@@ -24,6 +24,7 @@ from starlette.status import HTTP_201_CREATED, HTTP_202_ACCEPTED
 from app.services.ai_engine import generate_explanation
 from app.services.analyzer import analyze_content
 from app.services.auth import authenticate_demo_user, create_access_token, verify_access_token, hash_password, verify_password, verify_google_token_or_code
+from app.services.rate_limiter import RateLimitMiddleware
 from app.services.reports import build_markdown_report
 from app.services.pdf_generator import generate_pdf_report
 from app.services.storage import (
@@ -175,6 +176,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(RateLimitMiddleware)
 
 
 class SendOTPRequest(BaseModel):

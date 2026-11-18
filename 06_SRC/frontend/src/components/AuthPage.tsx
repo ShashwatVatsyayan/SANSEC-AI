@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Shield, 
@@ -31,12 +31,12 @@ export const AuthPage: React.FC = () => {
   const savedCreds = rememberedCredentialsManager.getSaved();
   const [rememberMe, setRememberMe] = useState(true);
 
-  // Form Fields matching reference image
-  const [firstName, setFirstName] = useState("Michał");
-  const [lastName, setLastName] = useState("Masiak");
+  // Form Fields - default to clean empty inputs
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [username, setUsername] = useState(savedCreds?.username || "");
-  const [email, setEmail] = useState("michal.masiak@anywhere.co");
-  const [password, setPassword] = useState("••••••••");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [resetEmail, setResetEmail] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
@@ -55,6 +55,19 @@ export const AuthPage: React.FC = () => {
 
   // Input references
   const firstInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const handleRateLimited = (e: Event) => {
+      const customEvent = e as CustomEvent<{ endpoint: string; retryAfter: number }>;
+      const seconds = customEvent.detail?.retryAfter || 30;
+      setErrorMsg(`Rate limit exceeded. Too many requests. Please wait ${seconds}s before trying again.`);
+      setLoading(false);
+    };
+    window.addEventListener("sansec-rate-limited", handleRateLimited);
+    return () => {
+      window.removeEventListener("sansec-rate-limited", handleRateLimited);
+    };
+  }, []);
 
   const fillAdminCredentials = () => {
     setUsername("admin@sansec.ai");
@@ -387,7 +400,7 @@ export const AuthPage: React.FC = () => {
                           value={firstName}
                           onChange={(e) => setFirstName(e.target.value)}
                           className="ref-input-ctrl"
-                          placeholder="Michał"
+                          placeholder="First name"
                           required
                         />
                         <IdCard className="ref-input-trailing-icon" size={16} />
@@ -403,7 +416,7 @@ export const AuthPage: React.FC = () => {
                           value={lastName}
                           onChange={(e) => setLastName(e.target.value)}
                           className="ref-input-ctrl"
-                          placeholder="Masiak"
+                          placeholder="Last name"
                           required
                         />
                         <IdCard className="ref-input-trailing-icon" size={16} />
@@ -421,7 +434,7 @@ export const AuthPage: React.FC = () => {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         className="ref-input-ctrl"
-                        placeholder="michal.masiak@anywhere.co"
+                        placeholder="name@company.com"
                         required
                       />
                       <Mail className="ref-input-trailing-icon" size={16} />
@@ -438,7 +451,7 @@ export const AuthPage: React.FC = () => {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         className="ref-input-ctrl"
-                        placeholder="••••••••"
+                        placeholder="Create a password"
                         required
                       />
                       <button 
@@ -494,7 +507,7 @@ export const AuthPage: React.FC = () => {
                         value={username || email}
                         onChange={(e) => { setUsername(e.target.value); setEmail(e.target.value); }}
                         className="ref-input-ctrl"
-                        placeholder="analyst@sansec.ai"
+                        placeholder="Username or email"
                         autoComplete="username"
                         required
                       />
@@ -512,7 +525,7 @@ export const AuthPage: React.FC = () => {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         className="ref-input-ctrl"
-                        placeholder="••••••••"
+                        placeholder="Password"
                         autoComplete="current-password"
                         required
                       />

@@ -4297,14 +4297,99 @@
   justify-content: flex-end;
 }
 
-/* ── Mobile Optimization (Preserving PC, Enhancing Android) ── */
+/* ── Mobile UI/UX Design Structure Optimization (Android & Mobile Screens) ── */
 @media (max-width: 768px) {
+  /* Navigation Bar: Compact Header with Horizontal Pill Carousel */
+  .ref-top-nav {
+    padding: 10px 14px;
+    height: auto;
+  }
+
+  .ref-nav-inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 0 4px;
+    width: 100%;
+  }
+
   .ref-nav-links {
+    display: flex !important;
+    order: 3;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 8px;
+    padding: 4px 2px 6px;
+    margin-top: 2px;
+  }
+
+  .ref-nav-links::-webkit-scrollbar {
     display: none;
   }
 
+  .ref-nav-link {
+    white-space: nowrap;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    font-size: 13px;
+    font-weight: 600;
+    flex-shrink: 0;
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+    touch-action: manipulation;
+  }
+
+  .ref-nav-link:active {
+    transform: scale(0.97);
+  }
+
+  .ref-nav-link.active {
+    background: rgba(20, 184, 166, 0.18);
+    color: #5eead4;
+    border-color: rgba(20, 184, 166, 0.4);
+  }
+
+  :root[data-theme="light"] .ref-nav-link {
+    background: rgba(240, 235, 225, 0.85);
+    border-color: rgba(180, 170, 155, 0.45);
+    color: #334155;
+  }
+
+  :root[data-theme="light"] .ref-nav-link.active {
+    background: rgba(13, 148, 136, 0.15);
+    color: #0f766e;
+    border-color: rgba(13, 148, 136, 0.35);
+  }
+
+  .ref-brand-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .ref-brand-text {
+    font-size: 14px;
+  }
+
+  .ref-nav-actions {
+    gap: 8px;
+  }
+
+  .ref-fill-admin-btn {
+    min-height: 38px;
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+
+  /* Auth Form Container & Card */
   .ref-main-container {
-    padding: 16px 12px;
+    padding: 14px 10px 48px;
   }
 
   .ref-auth-card {
@@ -4312,15 +4397,23 @@
     min-height: auto;
     border-radius: 20px;
     flex-direction: column;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
   }
 
   .ref-form-column {
     width: 100%;
-    padding: 28px 18px;
+    padding: 24px 16px;
   }
 
   .ref-title {
-    font-size: 26px;
+    font-size: clamp(22px, 6.5vw, 28px);
+    line-height: 1.15;
+    margin-bottom: 6px;
+  }
+
+  .ref-switch-row {
+    font-size: 13px;
+    margin-bottom: 20px;
   }
 
   .ref-graphic-column {
@@ -4329,22 +4422,220 @@
 
   .ref-grid-split {
     grid-template-columns: 1fr;
+    gap: 12px;
   }
 
+  .ref-field-group {
+    gap: 5px;
+  }
+
+  .ref-field-label {
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  /* Inputs: 50px Height & 16px font-size to prevent mobile browser zoom */
+  .ref-input-ctrl {
+    min-height: 50px;
+    font-size: 16px !important;
+    border-radius: 12px;
+    padding: 10px 44px 10px 14px;
+  }
+
+  .ref-input-trailing-icon {
+    right: 14px;
+  }
+
+  .ref-input-toggle-btn {
+    right: 12px;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Action Buttons: 48px Touch Target Height */
   .ref-actions-row {
+    display: flex;
     flex-direction: row;
+    gap: 10px;
     width: 100%;
+    margin-top: 8px;
   }
 
   .ref-btn-secondary,
   .ref-btn-primary {
     flex: 1;
-    min-height: 44px;
-    padding: 0 14px;
+    min-height: 48px;
+    padding: 0 16px;
+    font-size: 14px;
+    font-weight: 700;
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
+  }
+
+  .ref-btn-secondary:active,
+  .ref-btn-primary:active {
+    transform: scale(0.98);
+  }
+
+  .ref-options-row {
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 12px;
+  }
+
+  .ref-social-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .ref-btn-social {
+    min-height: 48px;
+    font-size: 14px;
+  }
+
+  /* Public Landing Pages Mobile Ergonomics */
+  .public-content-container {
+    padding: 16px 12px 60px;
+    gap: 28px;
+  }
+
+  .public-hero-section {
+    padding: 8px 0 4px;
+    gap: 12px;
+  }
+
+  .public-badge {
+    font-size: 10px;
+    padding: 5px 12px;
+  }
+
+  .public-hero-title {
+    font-size: clamp(1.85rem, 6.8vw, 2.3rem);
+    line-height: 1.15;
+  }
+
+  .public-hero-lead {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .public-hero-actions {
+    flex-direction: column;
+    width: 100%;
+    gap: 10px;
+  }
+
+  .public-btn-primary,
+  .public-btn-secondary {
+    width: 100%;
+    justify-content: center;
+    min-height: 48px;
+    font-size: 15px;
+    border-radius: 14px;
+    touch-action: manipulation;
+  }
+
+  .public-btn-primary:active,
+  .public-btn-secondary:active {
+    transform: scale(0.98);
+  }
+
+  .public-stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .stat-card {
+    padding: 12px 10px;
+    min-height: 80px;
+    border-radius: 10px;
+  }
+
+  .stat-value {
+    font-size: 1.45rem;
+  }
+
+  .stat-label {
+    font-size: 10px;
+  }
+
+  .public-features-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .coffer-card {
+    padding: 16px 14px;
+    border-radius: 14px;
+  }
+
+  .coffer-card h3 {
+    font-size: 15px;
+  }
+
+  .coffer-card p {
     font-size: 13px;
+    line-height: 1.55;
+  }
+
+  /* Modals & Dialogs on Mobile */
+  .ref-spec-modal-card,
+  .ref-method-card {
+    width: 95%;
+    max-width: 95%;
+    padding: 20px 16px;
+    border-radius: 18px;
   }
 
   .ref-spec-grid {
     grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  /* Interactive Tabs & Filters Ergonomics on Mobile */
+  .public-section .panel pre,
+  .public-section .panel .terminal-window {
+    font-size: 11px;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 10px;
+  }
+
+  .public-section button {
+    touch-action: manipulation;
+  }
+
+  .public-section button:active {
+    transform: scale(0.97);
+  }
+}
+
+@media (max-width: 480px) {
+  .ref-actions-row {
+    flex-direction: column;
+  }
+
+  .ref-btn-secondary,
+  .ref-btn-primary {
+    width: 100%;
+  }
+
+  .public-stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  .stat-value {
+    font-size: 1.3rem;
+  }
+
+  /* Full-width touch-friendly actions on small mobile phones */
+  .public-hero-actions button {
+    width: 100%;
   }
 }

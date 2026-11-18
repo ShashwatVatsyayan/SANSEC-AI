@@ -17,6 +17,8 @@ import {
   AlertTriangle, 
   Globe, 
   ChevronRight,
+  ChevronLeft,
+  Activity,
   User,
   Sliders,
   ShieldCheck,
@@ -973,240 +975,470 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.3 }}
             >
-              {/* Coffer-Style Security Portal Hero */}
-              <div className="coffer-hero-container">
-                <div className="coffer-hero-grid">
-                  
-                  {/* Left Column: Editorial Headline & Actions */}
-                  <div className="coffer-hero-left">
-                    <div className="coffer-status-chip">
-                      <span className="coffer-chip-dot" />
-                      <span>142 SENSORS ONLINE • ZERO-DAY HEURISTICS ACTIVE</span>
+              {/* Desktop / PC Dashboard View (Preserved 100% Unchanged) */}
+              <div className="desktop-dashboard-view">
+                {/* Coffer-Style Security Portal Hero */}
+                <div className="coffer-hero-container">
+                  <div className="coffer-hero-grid">
+                    
+                    {/* Left Column: Editorial Headline & Actions */}
+                    <div className="coffer-hero-left">
+                      <div className="coffer-status-chip">
+                        <span className="coffer-chip-dot" />
+                        <span>142 SENSORS ONLINE • ZERO-DAY HEURISTICS ACTIVE</span>
+                      </div>
+
+                      <h2 className="coffer-hero-title">
+                        Threats you can see<br />
+                        across every payload<br />
+                        <span className="coffer-hero-title-accent">you execute</span>
+                      </h2>
+
+                      <p className="coffer-hero-subtitle">
+                        SANSEC AI gives SecOps teams complete visibility into binary telemetry, section entropy, and suspicious imports without risking host integrity.
+                      </p>
+
+                      <div className="coffer-hero-actions">
+                        <button 
+                          type="button"
+                          className="coffer-btn-primary"
+                          onClick={() => setIsDropModalOpen(true)}
+                        >
+                          <Upload size={16} />
+                          <span>Start Dissection</span>
+                        </button>
+                        <button 
+                          type="button"
+                          className="coffer-btn-secondary"
+                          onClick={() => setActiveTab("analytics")}
+                        >
+                          <TrendingUp size={16} />
+                          <span>View Analytics</span>
+                        </button>
+                      </div>
+
+                      <div className="coffer-trust-strip">
+                        <span className="coffer-trust-label">TRUSTED BY TIER-1 SOAR PLATFORMS AT</span>
+                        <div className="coffer-trust-logos">
+                          <span>CROWDSTRIKE</span>
+                          <span className="coffer-trust-dot">•</span>
+                          <span>SENTINEL</span>
+                          <span className="coffer-trust-dot">•</span>
+                          <span>CYBERARK</span>
+                          <span className="coffer-trust-dot">•</span>
+                          <span>MANDIANT</span>
+                          <span className="coffer-trust-dot">•</span>
+                          <span>PALO ALTO</span>
+                        </div>
+                      </div>
                     </div>
 
-                    <h2 className="coffer-hero-title">
-                      Threats you can see<br />
-                      across every payload<br />
-                      <span className="coffer-hero-title-accent">you execute</span>
-                    </h2>
+                    {/* Right Column: 2 Floating Cyber Glass Cards */}
+                    <div className="coffer-hero-right">
+                      {/* Top Card: Reserve / Heuristic Policy Card */}
+                      <div className="coffer-card policy-card">
+                        <div className="coffer-card-header">
+                          <span className="coffer-card-label">HEURISTIC DEFENSE POLICY</span>
+                          <span className="coffer-card-badge">ACTIVE SHIELD</span>
+                        </div>
 
-                    <p className="coffer-hero-subtitle">
-                      SANSEC AI gives SecOps teams complete visibility into binary telemetry, section entropy, and suspicious imports without risking host integrity.
+                        <div className="coffer-metric-split">
+                          <div className="coffer-split-col">
+                            <span className="coffer-split-num">84%</span>
+                            <span className="coffer-split-sub">operating</span>
+                          </div>
+                          <span className="coffer-split-divider">/</span>
+                          <div className="coffer-split-col">
+                            <span className="coffer-split-num">16%</span>
+                            <span className="coffer-split-sub">quarantined</span>
+                          </div>
+                        </div>
+
+                        <div className="coffer-policy-meter">
+                          <div className="coffer-meter-fill operating" style={{ width: '84%' }} />
+                          <div className="coffer-meter-fill quarantined" style={{ width: '16%' }} />
+                        </div>
+
+                        <div className="coffer-card-footer">
+                          <div className="coffer-footer-row">
+                            <span className="coffer-bullet active" />
+                            <span className="text-secondary text-xs">+{stats.totalScans || 18} PE SAMPLES PARSED</span>
+                          </div>
+                          <div className="coffer-footer-row">
+                            <span className="coffer-bullet" />
+                            <span className="text-muted text-xs">NEXT SWEEP: CONTINUOUS</span>
+                          </div>
+                          <div className="coffer-footer-row">
+                            <span className="coffer-bullet" />
+                            <span className="text-muted text-xs">ENGINE: LIEF STATIC AST</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Bottom Card: Holdings / Entropy Monitor Card */}
+                      <div className="coffer-card holdings-card">
+                        <div className="coffer-card-header">
+                          <span className="coffer-card-label">SECTOR ENTROPY MONITOR</span>
+                          <span className="coffer-trend-badge">▲ HIGH ALERT</span>
+                        </div>
+
+                        <div className="coffer-holdings-metric">
+                          <span className="coffer-holdings-val">7.64 <span className="coffer-holdings-unit">SHANNON</span></span>
+                          <span className="coffer-holdings-delta">▲ 3.1%</span>
+                        </div>
+
+                        {/* Animated SVG Sparkline Wave */}
+                        <div className="coffer-sparkline-box">
+                          <svg viewBox="0 0 320 60" className="coffer-sparkline-svg" preserveAspectRatio="none">
+                            <defs>
+                              <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor="#14b8a6" stopOpacity="0.35" />
+                                <stop offset="100%" stopColor="#14b8a6" stopOpacity="0.0" />
+                              </linearGradient>
+                            </defs>
+                            <path 
+                              d="M0,45 Q40,48 80,32 T160,38 T240,18 T320,24 L320,60 L0,60 Z" 
+                              fill="url(#sparkGrad)" 
+                            />
+                            <path 
+                              d="M0,45 Q40,48 80,32 T160,38 T240,18 T320,24" 
+                              fill="none" 
+                              stroke="#14b8a6" 
+                              strokeWidth="2.5" 
+                            />
+                          </svg>
+                        </div>
+                      </div>
+
+                      <div className="coffer-caption">
+                        <span>Live buffer monitoring</span>
+                        <span className="text-muted text-xs">From binary slice to MITRE matrix, sub-millisecond</span>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+
+                {/* Stats Row */}
+                <div className="stats-row">
+                  <div className="panel stat-card">
+                    <span className="stat-label">TOTAL SCANS</span>
+                    <span className="stat-value text-teal">{stats.totalScans}</span>
+                  </div>
+                  <div className="panel stat-card">
+                    <span className="stat-label">THREATS DETECTED</span>
+                    <span className="stat-value text-red">{stats.threatsDetected}</span>
+                  </div>
+                  <div className="panel stat-card">
+                    <span className="stat-label">AVG RISK SCORE</span>
+                    <span className="stat-value text-gold">{stats.avgRiskScore}/100</span>
+                  </div>
+                  <div className="panel stat-card">
+                    <span className="stat-label">EXECUTABLES ANALYZED</span>
+                    <span className="stat-value">{stats.peFilesScanned}</span>
+                  </div>
+                </div>
+
+                {/* Summary dashboard section */}
+                <div className="dashboard-default grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="panel info-card welcome-panel lg:col-span-2">
+                    <h3>Deterministic Static Dissection</h3>
+                    <p className="text-secondary mt-2">
+                      Dissect binary samples using safe static parsing methods. Drop or select executables to parse sections structures, compile cryptographic hashes, list suspicious API call imports, and map matched behaviors to standard MITRE ATT&CK matrices.
                     </p>
-
-                    <div className="coffer-hero-actions">
-                      <button 
-                        type="button"
-                        className="coffer-btn-primary"
-                        onClick={() => setIsDropModalOpen(true)}
-                      >
-                        <Upload size={16} />
-                        <span>Start Dissection</span>
+                    <div className="flex gap-4 mt-6">
+                      <button className="btn-primary" onClick={() => setIsDropModalOpen(true)}>
+                        <Upload size={14} className="inline mr-1" /> Dissect Target Sample
                       </button>
-                      <button 
-                        type="button"
-                        className="coffer-btn-secondary"
-                        onClick={() => setActiveTab("analytics")}
-                      >
-                        <TrendingUp size={16} />
-                        <span>View Analytics</span>
+                      <button className="btn-secondary" onClick={() => setActiveTab("analytics")}>
+                        Disassembly Trends
                       </button>
                     </div>
+                  </div>
 
-                    <div className="coffer-trust-strip">
-                      <span className="coffer-trust-label">TRUSTED BY TIER-1 SOAR PLATFORMS AT</span>
-                      <div className="coffer-trust-logos">
-                        <span>CROWDSTRIKE</span>
-                        <span className="coffer-trust-dot">•</span>
-                        <span>SENTINEL</span>
-                        <span className="coffer-trust-dot">•</span>
-                        <span>CYBERARK</span>
-                        <span className="coffer-trust-dot">•</span>
-                        <span>MANDIANT</span>
-                        <span className="coffer-trust-dot">•</span>
-                        <span>PALO ALTO</span>
+                  <div className="panel flex flex-col justify-between">
+                    <div>
+                      <h4 className="flex items-center gap-2"><Server size={16} className="text-teal" /> Gateway Telemetry</h4>
+                      <p className="text-secondary text-xs mt-2 leading-relaxed">
+                        All calculations are performed strictly via static metadata extraction. The sample instructions are never executed on the host filesystem.
+                      </p>
+                    </div>
+                    <div className="mt-4 flex flex-col gap-2">
+                      <div className="flex justify-between text-xs border-b border-color py-1">
+                        <span className="text-muted">Parser Config</span>
+                        <span className="text-teal font-semibold mono">Active (LIEF)</span>
+                      </div>
+                      <div className="flex justify-between text-xs border-b border-color py-1">
+                        <span className="text-muted">AI Diagnostic Model</span>
+                        <span className="text-gold font-semibold mono">{workspaceSettings.active_ai_model}</span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Right Column: 2 Floating Cyber Glass Cards */}
-                  <div className="coffer-hero-right">
-                    {/* Top Card: Reserve / Heuristic Policy Card */}
-                    <div className="coffer-card policy-card">
-                      <div className="coffer-card-header">
-                        <span className="coffer-card-label">HEURISTIC DEFENSE POLICY</span>
-                        <span className="coffer-card-badge">ACTIVE SHIELD</span>
+                  {/* Recent Activities List */}
+                  <div className="panel lg:col-span-2">
+                    <h4>Recent analyses</h4>
+                    {history.length > 0 ? (
+                      <div className="recent-list-summary mt-4">
+                        {history.slice(0, 5).map((item, idx) => (
+                          <div key={idx} className="recent-list-summary-item" onClick={() => loadPastReport(item.id)}>
+                            <div className="flex justify-between items-center">
+                              <span className="bold text-sm text-truncate" style={{ maxWidth: '280px' }}>{item.filename}</span>
+                              <span className={`badge badge-${item.threat_level.toLowerCase()}`}>{item.risk_score}/100</span>
+                            </div>
+                            <div className="flex justify-between text-xs text-muted mt-1 mono">
+                              <span>Hash: {item.id.slice(0, 16)}...</span>
+                              <span>{new Date(item.timestamp).toLocaleTimeString()}</span>
+                            </div>
+                          </div>
+                        ))}
                       </div>
-
-                      <div className="coffer-metric-split">
-                        <div className="coffer-split-col">
-                          <span className="coffer-split-num">84%</span>
-                          <span className="coffer-split-sub">operating</span>
-                        </div>
-                        <span className="coffer-split-divider">/</span>
-                        <div className="coffer-split-col">
-                          <span className="coffer-split-num">16%</span>
-                          <span className="coffer-split-sub">quarantined</span>
-                        </div>
-                      </div>
-
-                      <div className="coffer-policy-meter">
-                        <div className="coffer-meter-fill operating" style={{ width: '84%' }} />
-                        <div className="coffer-meter-fill quarantined" style={{ width: '16%' }} />
-                      </div>
-
-                      <div className="coffer-card-footer">
-                        <div className="coffer-footer-row">
-                          <span className="coffer-bullet active" />
-                          <span className="text-secondary text-xs">+{stats.totalScans || 18} PE SAMPLES PARSED</span>
-                        </div>
-                        <div className="coffer-footer-row">
-                          <span className="coffer-bullet" />
-                          <span className="text-muted text-xs">NEXT SWEEP: CONTINUOUS</span>
-                        </div>
-                        <div className="coffer-footer-row">
-                          <span className="coffer-bullet" />
-                          <span className="text-muted text-xs">ENGINE: LIEF STATIC AST</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Bottom Card: Holdings / Entropy Monitor Card */}
-                    <div className="coffer-card holdings-card">
-                      <div className="coffer-card-header">
-                        <span className="coffer-card-label">SECTOR ENTROPY MONITOR</span>
-                        <span className="coffer-trend-badge">▲ HIGH ALERT</span>
-                      </div>
-
-                      <div className="coffer-holdings-metric">
-                        <span className="coffer-holdings-val">7.64 <span className="coffer-holdings-unit">SHANNON</span></span>
-                        <span className="coffer-holdings-delta">▲ 3.1%</span>
-                      </div>
-
-                      {/* Animated SVG Sparkline Wave */}
-                      <div className="coffer-sparkline-box">
-                        <svg viewBox="0 0 320 60" className="coffer-sparkline-svg" preserveAspectRatio="none">
-                          <defs>
-                            <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="0%" stopColor="#14b8a6" stopOpacity="0.35" />
-                              <stop offset="100%" stopColor="#14b8a6" stopOpacity="0.0" />
-                            </linearGradient>
-                          </defs>
-                          <path 
-                            d="M0,45 Q40,48 80,32 T160,38 T240,18 T320,24 L320,60 L0,60 Z" 
-                            fill="url(#sparkGrad)" 
-                          />
-                          <path 
-                            d="M0,45 Q40,48 80,32 T160,38 T240,18 T320,24" 
-                            fill="none" 
-                            stroke="#14b8a6" 
-                            strokeWidth="2.5" 
-                          />
-                        </svg>
-                      </div>
-                    </div>
-
-                    <div className="coffer-caption">
-                      <span>Live buffer monitoring</span>
-                      <span className="text-muted text-xs">From binary slice to MITRE matrix, sub-millisecond</span>
-                    </div>
+                    ) : (
+                      <p className="text-secondary text-sm mt-4">No records found on the current workspace registry.</p>
+                    )}
                   </div>
 
+                  <div className="panel">
+                    <h4>Recent alerts</h4>
+                    <div className="mt-4 flex flex-col gap-3">
+                      {notifications.slice(0, 2).map((not, idx) => (
+                        <div key={idx} className={`feed-alert border-l-2 pl-3 ${
+                          not.severity === 'critical' ? 'border-red-500' : 'border-yellow-500'
+                        }`}>
+                          <span className="text-xs text-muted block mono">{not.severity.toUpperCase()}</span>
+                          <p className="text-xs font-semibold">{not.message}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {/* Stats Row */}
-              <div className="stats-row">
-                <div className="panel stat-card">
-                  <span className="stat-label">TOTAL SCANS</span>
-                  <span className="stat-value text-teal">{stats.totalScans}</span>
-                </div>
-                <div className="panel stat-card">
-                  <span className="stat-label">THREATS DETECTED</span>
-                  <span className="stat-value text-red">{stats.threatsDetected}</span>
-                </div>
-                <div className="panel stat-card">
-                  <span className="stat-label">AVG RISK SCORE</span>
-                  <span className="stat-value text-gold">{stats.avgRiskScore}/100</span>
-                </div>
-                <div className="panel stat-card">
-                  <span className="stat-label">EXECUTABLES ANALYZED</span>
-                  <span className="stat-value">{stats.peFilesScanned}</span>
-                </div>
-              </div>
-
-              {/* Summary dashboard section */}
-              <div className="dashboard-default grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="panel info-card welcome-panel lg:col-span-2">
-                  <h3>Deterministic Static Dissection</h3>
-                  <p className="text-secondary mt-2">
-                    Dissect binary samples using safe static parsing methods. Drop or select executables to parse sections structures, compile cryptographic hashes, list suspicious API call imports, and map matched behaviors to standard MITRE ATT&CK matrices.
-                  </p>
-                  <div className="flex gap-4 mt-6">
-                    <button className="btn-primary" onClick={() => setIsDropModalOpen(true)}>
-                      <Upload size={14} className="inline mr-1" /> Dissect Target Sample
-                    </button>
-                    <button className="btn-secondary" onClick={() => setActiveTab("analytics")}>
-                      Disassembly Trends
-                    </button>
+              {/* Mobile / Android Dashboard Structure (Matching preview(3).mp4) */}
+              <div className="mobile-android-dashboard-view">
+                {/* 1. Mobile Top Bar */}
+                <div className="mobile-top-bar">
+                  <button 
+                    type="button" 
+                    className="mobile-back-btn" 
+                    onClick={() => { setSelectedReport(null); setActiveTab("dashboard"); }}
+                    aria-label="Back to Overview"
+                  >
+                    <ChevronLeft size={20} />
+                  </button>
+                  <div className="mobile-top-title-group">
+                    <span className="mobile-top-title">SANSEC SOC</span>
+                    <span className="mobile-top-subtitle">Node 142 • Active Sector</span>
+                  </div>
+                  <div className="mobile-status-pill">
+                    <span className="mobile-status-dot" />
+                    <span>Nominal</span>
                   </div>
                 </div>
 
-                <div className="panel flex flex-col justify-between">
-                  <div>
-                    <h4 className="flex items-center gap-2"><Server size={16} className="text-teal" /> Gateway Telemetry</h4>
-                    <p className="text-secondary text-xs mt-2 leading-relaxed">
-                      All calculations are performed strictly via static metadata extraction. The sample instructions are never executed on the host filesystem.
-                    </p>
-                  </div>
-                  <div className="mt-4 flex flex-col gap-2">
-                    <div className="flex justify-between text-xs border-b border-color py-1">
-                      <span className="text-muted">Parser Config</span>
-                      <span className="text-teal font-semibold mono">Active (LIEF)</span>
+                {/* 2. Spotlight Dual-Card with Right Vertical Metric Gauge */}
+                <div className="mobile-spotlight-card">
+                  <div className="mobile-spotlight-main">
+                    <div className="mobile-spotlight-media">
+                      <div className="mobile-spotlight-watermark">
+                        <img src="/sansec-logo.png" alt="SANSEC Emblem" className="mobile-spotlight-logo" />
+                      </div>
+                      <div className="mobile-spotlight-media-content">
+                        <span className="mobile-spotlight-tag">ACTIVE SECTOR ENGINE</span>
+                        <h3 className="mobile-spotlight-heading">Heuristic Dissection</h3>
+                        <p className="mobile-spotlight-sub">PE32+ Binary Analyzer • LIEF Static AST</p>
+                      </div>
                     </div>
-                    <div className="flex justify-between text-xs border-b border-color py-1">
-                      <span className="text-muted">AI Diagnostic Model</span>
-                      <span className="text-gold font-semibold mono">{workspaceSettings.active_ai_model}</span>
+
+                    <div className="mobile-spotlight-toggle-row">
+                      <label className="mobile-toggle-label">
+                        <span className="mobile-toggle-switch">
+                          <input type="checkbox" defaultChecked className="sr-only" aria-label="Toggle Air-gapped Sandbox" />
+                          <span className="mobile-toggle-slider" />
+                        </span>
+                        <span className="mobile-toggle-text">Air-gapped Sandbox</span>
+                      </label>
+                      <span className="mobile-spotlight-counter">+{stats.totalScans || 18} Scanned</span>
                     </div>
                   </div>
+
+                  {/* Attached Vertical Pill Metric Gauge */}
+                  <div className="mobile-spotlight-gauge">
+                    <div className="mobile-gauge-icon">
+                      <ShieldCheck size={18} />
+                    </div>
+                    <div className="mobile-gauge-num">7.64</div>
+                    <div className="mobile-gauge-label">ENTROPY</div>
+                    <div className="mobile-gauge-badge">HIGH</div>
+                    
+                    <div className="mobile-gauge-track">
+                      <div className="mobile-gauge-fill" style={{ height: '76%' }} />
+                      <div className="mobile-gauge-thumb" style={{ bottom: '76%' }} />
+                    </div>
+
+                    <div className="mobile-gauge-footer">
+                      <span>MAX 8.0</span>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Recent Activities List */}
-                <div className="panel lg:col-span-2">
-                  <h4>Recent analyses</h4>
-                  {history.length > 0 ? (
-                    <div className="recent-list-summary mt-4">
-                      {history.slice(0, 5).map((item, idx) => (
-                        <div key={idx} className="recent-list-summary-item" onClick={() => loadPastReport(item.id)}>
+                {/* 3. Quick Start Dissection Action Button */}
+                <div className="mobile-quick-action-strip">
+                  <button 
+                    type="button" 
+                    className="mobile-start-dissect-btn"
+                    onClick={() => setIsDropModalOpen(true)}
+                  >
+                    <Upload size={18} />
+                    <span>Start Dissection (Drop Payload)</span>
+                  </button>
+                </div>
+
+                {/* 4. Active Threat Windows Horizontal Snap Carousel ("Tonight's windows") */}
+                <div className="mobile-windows-section">
+                  <div className="mobile-section-header">
+                    <h4 className="mobile-section-title">Active Threat Windows</h4>
+                    <span className="mobile-section-counter">3 open of 6</span>
+                  </div>
+
+                  <div className="mobile-windows-carousel">
+                    <div className="mobile-window-card" onClick={() => setActiveTab("scanner")}>
+                      <div className="mobile-window-thumb threat-critical">
+                        <Shield className="text-red" size={26} />
+                        <span className="mobile-window-risk">94/100</span>
+                      </div>
+                      <div className="mobile-window-info">
+                        <span className="mobile-window-name">Ransomware.WannaCry</span>
+                        <span className="mobile-window-sub">Packed .rsrc section</span>
+                        <div className="mobile-window-progress-bar">
+                          <div className="mobile-window-progress-fill" style={{ width: '94%' }} />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mobile-window-card" onClick={() => setActiveTab("scanner")}>
+                      <div className="mobile-window-thumb threat-high">
+                        <Cpu className="text-gold" size={26} />
+                        <span className="mobile-window-risk">82/100</span>
+                      </div>
+                      <div className="mobile-window-info">
+                        <span className="mobile-window-name">Trojan.Emotet</span>
+                        <span className="mobile-window-sub">Process Injection APIs</span>
+                        <div className="mobile-window-progress-bar">
+                          <div className="mobile-window-progress-fill" style={{ width: '82%' }} />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mobile-window-card" onClick={() => setActiveTab("scanner")}>
+                      <div className="mobile-window-thumb threat-medium">
+                        <FileCode className="text-teal" size={26} />
+                        <span className="mobile-window-risk">76/100</span>
+                      </div>
+                      <div className="mobile-window-info">
+                        <span className="mobile-window-name">Injector.Cobalt</span>
+                        <span className="mobile-window-sub">Encrypted C2 Payload</span>
+                        <div className="mobile-window-progress-bar">
+                          <div className="mobile-window-progress-fill" style={{ width: '76%' }} />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mobile-window-card" onClick={() => setActiveTab("scanner")}>
+                      <div className="mobile-window-thumb threat-low">
+                        <Activity className="text-blue" size={26} />
+                        <span className="mobile-window-risk">45/100</span>
+                      </div>
+                      <div className="mobile-window-info">
+                        <span className="mobile-window-name">Dropper.AgentTesla</span>
+                        <span className="mobile-window-sub">Suspicious PE Imports</span>
+                        <div className="mobile-window-progress-bar">
+                          <div className="mobile-window-progress-fill" style={{ width: '45%' }} />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 5. MITRE ATT&CK Spectrum Timeline ("The year") */}
+                <div className="mobile-spectrum-section">
+                  <div className="mobile-section-header">
+                    <h4 className="mobile-section-title">MITRE ATT&CK Spectrum</h4>
+                    <span className="mobile-section-counter">5 of 14 Tactics Mapped</span>
+                  </div>
+
+                  <div className="mobile-spectrum-box">
+                    <div className="mobile-spectrum-lanes">
+                      <div className="mobile-spectrum-lane">
+                        <span className="mobile-lane-name">Process Injection</span>
+                        <div className="mobile-lane-track">
+                          <div className="mobile-lane-bar" style={{ left: '15%', width: '60%' }} />
+                        </div>
+                      </div>
+                      <div className="mobile-spectrum-lane">
+                        <span className="mobile-lane-name">Defense Evasion</span>
+                        <div className="mobile-lane-track">
+                          <div className="mobile-lane-bar" style={{ left: '0%', width: '45%' }} />
+                        </div>
+                      </div>
+                      <div className="mobile-spectrum-lane">
+                        <span className="mobile-lane-name">Sandbox Detect</span>
+                        <div className="mobile-lane-track">
+                          <div className="mobile-lane-bar" style={{ left: '50%', width: '35%' }} />
+                        </div>
+                      </div>
+                      <div className="mobile-spectrum-lane">
+                        <span className="mobile-lane-name">Command &amp; Control</span>
+                        <div className="mobile-lane-track">
+                          <div className="mobile-lane-bar" style={{ left: '30%', width: '55%' }} />
+                        </div>
+                      </div>
+                      <div className="mobile-spectrum-lane">
+                        <span className="mobile-lane-name">Memory Exfil</span>
+                        <div className="mobile-lane-track">
+                          <div className="mobile-lane-bar" style={{ left: '65%', width: '25%' }} />
+                        </div>
+                      </div>
+
+                      {/* Scanning Phase Vertical Cursor Indicator */}
+                      <div className="mobile-spectrum-cursor" style={{ left: '72%' }} />
+                    </div>
+
+                    <div className="mobile-spectrum-labels">
+                      <span>REC</span>
+                      <span>EXE</span>
+                      <span>PER</span>
+                      <span>ESC</span>
+                      <span>EVA</span>
+                      <span>C2</span>
+                      <span>EXF</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 6. Recent Mobile Scans Quick List */}
+                {history.length > 0 && (
+                  <div className="mobile-recent-section">
+                    <div className="mobile-section-header">
+                      <h4 className="mobile-section-title">Recent Dissections</h4>
+                      <span className="mobile-section-counter">{history.length} records</span>
+                    </div>
+                    <div className="mobile-recent-list">
+                      {history.slice(0, 3).map((item, idx) => (
+                        <div key={idx} className="mobile-recent-item" onClick={() => loadPastReport(item.id)}>
                           <div className="flex justify-between items-center">
-                            <span className="bold text-sm text-truncate" style={{ maxWidth: '280px' }}>{item.filename}</span>
+                            <span className="bold text-xs text-truncate" style={{ maxWidth: '200px' }}>{item.filename}</span>
                             <span className={`badge badge-${item.threat_level.toLowerCase()}`}>{item.risk_score}/100</span>
                           </div>
                           <div className="flex justify-between text-xs text-muted mt-1 mono">
-                            <span>Hash: {item.id.slice(0, 16)}...</span>
+                            <span>Hash: {item.id.slice(0, 10)}...</span>
                             <span>{new Date(item.timestamp).toLocaleTimeString()}</span>
                           </div>
                         </div>
                       ))}
                     </div>
-                  ) : (
-                    <p className="text-secondary text-sm mt-4">No records found on the current workspace registry.</p>
-                  )}
-                </div>
-
-                <div className="panel">
-                  <h4>Recent alerts</h4>
-                  <div className="mt-4 flex flex-col gap-3">
-                    {notifications.slice(0, 2).map((not, idx) => (
-                      <div key={idx} className={`feed-alert border-l-2 pl-3 ${
-                        not.severity === 'critical' ? 'border-red-500' : 'border-yellow-500'
-                      }`}>
-                        <span className="text-xs text-muted block mono">{not.severity.toUpperCase()}</span>
-                        <p className="text-xs font-semibold">{not.message}</p>
-                      </div>
-                    ))}
                   </div>
-                </div>
+                )}
               </div>
             </motion.div>
           )}
@@ -2252,52 +2484,52 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
           )}
         </AnimatePresence>
         </div>
-        {/* ── Mobile Bottom Tab Navigation (hidden on desktop via CSS) ── */}
-        <nav className="mobile-bottom-nav" aria-label="Mobile Navigation">
+        {/* ── Mobile Floating Pill Dock (Native Android UI matching preview(3).mp4) ── */}
+        <nav className="mobile-bottom-dock" aria-label="Mobile Navigation">
           <button
             type="button"
-            className={`mobile-nav-item ${activeTab === "dashboard" ? "active" : ""}`}
+            className={`mobile-dock-btn ${activeTab === "dashboard" ? "active" : ""}`}
             onClick={() => { setActiveTab("dashboard"); setSelectedReport(null); }}
             aria-label="Security Dashboard Home"
+            title="Dashboard Overview"
           >
-            <span className="mobile-nav-icon-wrap"><TrendingUp size={18} /></span>
-            <span className="mobile-nav-label">Home</span>
+            <TrendingUp size={20} />
           </button>
           <button
             type="button"
-            className={`mobile-nav-item ${activeTab === "scanner" ? "active" : ""}`}
+            className={`mobile-dock-btn ${activeTab === "scanner" ? "active" : ""}`}
             onClick={() => setActiveTab("scanner")}
             aria-label="Heuristic Dissection Scanner"
+            title="Dissection Scanner"
           >
-            <span className="mobile-nav-icon-wrap"><Cpu size={18} /></span>
-            <span className="mobile-nav-label">Scan</span>
+            <Cpu size={20} />
           </button>
           <button
             type="button"
-            className={`mobile-nav-item ${activeTab === "analytics" ? "active" : ""}`}
+            className={`mobile-dock-btn ${activeTab === "analytics" ? "active" : ""}`}
             onClick={() => setActiveTab("analytics")}
             aria-label="Threat Analytics & Trends"
+            title="Threat Analytics"
           >
-            <span className="mobile-nav-icon-wrap"><FileCode size={18} /></span>
-            <span className="mobile-nav-label">Threats</span>
+            <FileCode size={20} />
           </button>
           <button
             type="button"
-            className={`mobile-nav-item ${activeTab === "history" ? "active" : ""}`}
+            className={`mobile-dock-btn ${activeTab === "history" ? "active" : ""}`}
             onClick={() => setActiveTab("history")}
             aria-label={`Scan History Records (${history.length})`}
+            title="Scan Records"
           >
-            <span className="mobile-nav-icon-wrap"><HistIcon size={18} /></span>
-            <span className="mobile-nav-label">History</span>
+            <HistIcon size={20} />
           </button>
           <button
             type="button"
-            className={`mobile-nav-item ${activeTab === "settings" ? "active" : ""}`}
+            className={`mobile-dock-btn ${activeTab === "settings" ? "active" : ""}`}
             onClick={() => setActiveTab("settings")}
             aria-label="Workspace Settings"
+            title="Settings"
           >
-            <span className="mobile-nav-icon-wrap"><Settings size={18} /></span>
-            <span className="mobile-nav-label">Settings</span>
+            <Settings size={20} />
           </button>
         </nav>
       </main>

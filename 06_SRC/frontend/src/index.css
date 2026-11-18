@@ -52,26 +52,46 @@
   --transition-slow:   all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* ─── Light Mode Tokens (Ink Bleed Theme Switcher) ─────────────────────── */
+/* ─── Light Mode Tokens: Warm Cream Luxury Finish (Ink Bleed Theme Switcher) ─── */
 :root[data-theme="light"],
 html[data-theme="light"] {
-  --bg-primary:        #f8fafc;
-  --bg-secondary:      #f1f5f9;
-  --bg-tertiary:       #e2e8f0;
-  --panel-bg:          #ffffff;
-  --panel-hover:       #f8fafc;
+  /* Warm paper cream backgrounds - zero eye glare */
+  --bg-primary:        #f6f4ef;
+  --bg-secondary:      #ede8df;
+  --bg-tertiary:       #e3ddd2;
+  --panel-bg:          rgba(253, 251, 247, 0.78);
+  --panel-hover:       rgba(255, 255, 255, 0.9);
 
-  --border-color:      rgba(0, 0, 0, 0.09);
-  --border-hover:      rgba(0, 0, 0, 0.18);
-  --border-active:     rgba(220, 38, 38, 0.55);
+  /* Delicate cream borders with top glass reflection */
+  --border-color:      rgba(180, 170, 155, 0.45);
+  --border-hover:      rgba(140, 130, 115, 0.65);
+  --border-active:     rgba(234, 88, 12, 0.6);
 
-  --text-primary:      #0f172a;
+  /* Deep ink text: maximum comfort and clarity (>14:1 contrast on #f6f4ef) */
+  --text-primary:      #172033;
   --text-secondary:    #334155;
   --text-muted:        #64748b;
 
-  --shadow-sm:         0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md:         0 4px 14px -2px rgba(0, 0, 0, 0.08);
-  --shadow-lg:         0 10px 28px -3px rgba(0, 0, 0, 0.12);
+  /* Calibrated Brand Accents: White, Blue (#0284c7) & Orange (#ea580c) */
+  --accent-red:        #ea580c;
+  --accent-red-hover:  #c2410c;
+  --accent-red-soft:   #f97316;
+  --accent-red-glow:   rgba(234, 88, 12, 0.12);
+  --accent-teal:       #0d9488;
+  --accent-gold:       #d97706;
+  --accent-blue:       #0284c7;
+
+  /* Threat Semantics */
+  --threat-critical:   #dc2626;
+  --threat-high:       #ea580c;
+  --threat-medium:     #d97706;
+  --threat-low:        #16a34a;
+  --threat-safe:       #0d9488;
+
+  /* Soft warm elevation shadows */
+  --shadow-sm:         0 2px 4px 0 rgba(160, 145, 130, 0.08);
+  --shadow-md:         0 8px 24px -4px rgba(160, 145, 130, 0.16);
+  --shadow-lg:         0 16px 36px -6px rgba(160, 145, 130, 0.22);
 }
 
 /* ─── Ink Bleed Overlay Canvas ─────────────────────────────────────────── */
@@ -178,98 +198,255 @@ html.theme-fade *::after {
   color: var(--text-primary);
 }
 
-/* Light Theme Overrides for Core Components */
+/* ─── Background Canvas Layering (Black Hole strictly behind all content) ─ */
+.black-hole-bg {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: -10 !important;
+  pointer-events: none !important;
+}
+
+:root[data-theme="light"] .black-hole-bg {
+  opacity: 0.12 !important;
+  filter: contrast(0.85);
+}
+
+.app-container,
+.workspace-main,
+.workspace-content {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+/* ─── Frosted Glass Styling System (Glassmorphism) ────────────────────────── */
+.panel,
+.stat-card,
+.coffer-card,
+.coffer-hero-container {
+  background: rgba(13, 20, 36, 0.58) !important;
+  backdrop-filter: blur(20px) saturate(190%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(190%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.22) !important;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+.panel:hover,
+.stat-card:hover,
+.coffer-card:hover {
+  border-color: rgba(255, 255, 255, 0.18) !important;
+  box-shadow: 0 12px 36px 0 rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+}
+
+/* Frosted Glass Inputs and Textboxes */
+.search-input,
+.ref-input-ctrl,
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+textarea,
+select {
+  background: rgba(8, 14, 26, 0.52) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.12) !important;
+  border-top: 1.5px solid rgba(255, 255, 255, 0.2) !important;
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.38), 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+  color: var(--text-primary) !important;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease !important;
+}
+
+.search-input:focus,
+.ref-input-ctrl:focus,
+.ref-input-shell.active-highlight .ref-input-ctrl,
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="search"]:focus,
+textarea:focus,
+select:focus {
+  border-color: #38bdf8 !important;
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.35), 0 0 0 2px rgba(56, 189, 248, 0.28) !important;
+  background: rgba(12, 20, 36, 0.7) !important;
+}
+
+/* ─── Light Mode Cream Overrides ─────────────────────────────────────── */
 :root[data-theme="light"] body {
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
+  background-color: #f6f4ef !important;
+  color: #172033 !important;
 }
 
 :root[data-theme="light"] .app-container {
-  background: var(--bg-primary);
+  background: #f6f4ef !important;
 }
 
 :root[data-theme="light"] .sidebar {
-  background: var(--bg-secondary);
-  border-right-color: var(--border-color);
+  background: #ede8df !important;
+  border-right-color: rgba(180, 170, 155, 0.45) !important;
 }
 
 :root[data-theme="light"] .top-header-bar {
-  background: rgba(255, 255, 255, 0.88);
-  border-bottom-color: var(--border-color);
+  background: rgba(246, 244, 239, 0.88) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border-bottom-color: rgba(180, 170, 155, 0.45) !important;
 }
 
-:root[data-theme="light"] .panel-card {
-  background: var(--panel-bg);
-  border-color: var(--border-color);
-  box-shadow: var(--shadow-sm);
+:root[data-theme="light"] .header-wordmark {
+  color: #172033 !important;
+}
+
+:root[data-theme="light"] .panel,
+:root[data-theme="light"] .stat-card,
+:root[data-theme="light"] .coffer-card,
+:root[data-theme="light"] .coffer-hero-container {
+  background: rgba(253, 251, 247, 0.82) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border: 1px solid rgba(195, 185, 170, 0.5) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.95) !important;
+  box-shadow: 0 8px 30px -4px rgba(175, 160, 140, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+}
+
+:root[data-theme="light"] .coffer-hero-title {
+  color: #172033 !important;
+}
+
+:root[data-theme="light"] .coffer-hero-title-accent {
+  color: #0284c7 !important; /* Electric Blue in cream mode */
+}
+
+:root[data-theme="light"] .coffer-hero-subtitle {
+  color: #334155 !important;
+}
+
+:root[data-theme="light"] .coffer-btn-primary {
+  background: #ea580c !important; /* Vibrant Orange */
+  color: #ffffff !important; /* Pure White text */
+  box-shadow: 0 4px 14px rgba(234, 88, 12, 0.25) !important;
+}
+
+:root[data-theme="light"] .coffer-btn-primary:hover {
+  background: #c2410c !important;
+}
+
+:root[data-theme="light"] .coffer-btn-secondary {
+  background: rgba(255, 255, 255, 0.65) !important;
+  backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(185, 175, 160, 0.55) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.9) !important;
+  color: #172033 !important;
+}
+
+:root[data-theme="light"] .stat-value {
+  color: #172033 !important;
+}
+
+:root[data-theme="light"] .stat-label {
+  color: #64748b !important;
+}
+
+:root[data-theme="light"] .search-input,
+:root[data-theme="light"] .ref-input-ctrl,
+:root[data-theme="light"] input[type="text"],
+:root[data-theme="light"] input[type="email"],
+:root[data-theme="light"] input[type="password"],
+:root[data-theme="light"] input[type="search"],
+:root[data-theme="light"] textarea,
+:root[data-theme="light"] select {
+  background: rgba(245, 241, 233, 0.8) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+  border: 1.5px solid rgba(185, 175, 160, 0.55) !important;
+  border-top: 1.5px solid rgba(165, 155, 140, 0.45) !important;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06), 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+  color: #172033 !important;
+}
+
+:root[data-theme="light"] .search-input:focus,
+:root[data-theme="light"] .ref-input-ctrl:focus,
+:root[data-theme="light"] .ref-input-shell.active-highlight .ref-input-ctrl,
+:root[data-theme="light"] input[type="text"]:focus,
+:root[data-theme="light"] input[type="email"]:focus,
+:root[data-theme="light"] input[type="password"]:focus,
+:root[data-theme="light"] input[type="search"]:focus,
+:root[data-theme="light"] textarea:focus,
+:root[data-theme="light"] select:focus {
+  border-color: #0284c7 !important;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05), 0 0 0 2px rgba(2, 132, 199, 0.25) !important;
+  background: rgba(255, 253, 248, 0.95) !important;
 }
 
 :root[data-theme="light"] .ref-portal-root {
-  background: #f8fafc;
-  color: #0f172a;
+  background: #f6f4ef !important;
+  color: #172033 !important;
 }
 
 :root[data-theme="light"] .ref-top-nav {
-  background: rgba(248, 250, 252, 0.88);
-  border-bottom-color: rgba(0, 0, 0, 0.08);
+  background: rgba(246, 244, 239, 0.88) !important;
+  border-bottom-color: rgba(180, 170, 155, 0.4) !important;
 }
 
-:root[data-theme="light"] .ref-brand-text {
-  color: #0f172a;
+:root[data-theme="light"] .ref-brand-text,
+:root[data-theme="light"] .ref-title {
+  color: #172033 !important;
 }
 
 :root[data-theme="light"] .ref-auth-card {
-  background: #ffffff;
-  border-color: rgba(0, 0, 0, 0.1);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.12);
+  background: rgba(253, 251, 247, 0.88) !important;
+  backdrop-filter: blur(24px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+  border: 1px solid rgba(190, 180, 165, 0.55) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.95) !important;
+  box-shadow: 0 24px 60px rgba(160, 145, 125, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
 }
 
-:root[data-theme="light"] .ref-title {
-  color: #0f172a;
-}
-
-:root[data-theme="light"] .ref-input-ctrl {
-  background: #f1f5f9;
-  border-color: rgba(0, 0, 0, 0.1);
-  color: #0f172a;
+:root[data-theme="light"] .ref-btn-primary {
+  background: #0284c7 !important; /* Electric Blue */
+  color: #ffffff !important; /* Pure White */
 }
 
 :root[data-theme="light"] .ref-btn-secondary {
-  background: #e2e8f0;
-  color: #1e293b;
+  background: rgba(235, 230, 220, 0.9) !important;
+  color: #172033 !important;
+}
+
+:root[data-theme="light"] .ref-link {
+  color: #0284c7 !important;
 }
 
 :root[data-theme="light"] .ref-method-card,
 :root[data-theme="light"] .ref-spec-modal-card {
-  background: #ffffff;
-  border-color: rgba(0, 0, 0, 0.12);
-  color: #0f172a;
+  background: rgba(253, 251, 247, 0.95) !important;
+  border-color: rgba(190, 180, 165, 0.55) !important;
+  color: #172033 !important;
 }
 
 :root[data-theme="light"] .ref-method-title {
-  color: #0f172a;
+  color: #172033 !important;
 }
 
 :root[data-theme="light"] .ref-method-option {
-  background: rgba(0, 0, 0, 0.03);
-  border-color: rgba(0, 0, 0, 0.08);
+  background: rgba(0, 0, 0, 0.03) !important;
+  border-color: rgba(180, 170, 155, 0.45) !important;
 }
 
 :root[data-theme="light"] .ref-method-opt-title {
-  color: #0f172a;
+  color: #172033 !important;
 }
 
 :root[data-theme="light"] .ref-spec-box {
-  background: rgba(0, 0, 0, 0.03);
-  border-color: rgba(0, 0, 0, 0.08);
+  background: rgba(0, 0, 0, 0.03) !important;
+  border-color: rgba(180, 170, 155, 0.45) !important;
 }
 
 :root[data-theme="light"] .ref-spec-detail {
-  color: #0f172a;
-}
-
-:root[data-theme="light"] .black-hole-container {
-  opacity: 0.12;
+  color: #172033 !important;
 }
 
 /* ─── Reset & Base ──────────────────────────────────────────────────────── */

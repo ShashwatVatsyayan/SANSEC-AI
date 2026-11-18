@@ -186,13 +186,16 @@ export const BlackHoleBackground: React.FC = () => {
   return (
     <canvas
       ref={canvasRef}
+      className="black-hole-bg"
+      data-html2canvas-ignore="true"
+      aria-hidden="true"
       style={{
         position: "fixed",
         top: 0,
         left: 0,
         width: "100vw",
         height: "100vh",
-        zIndex: 0,
+        zIndex: -10,
         pointerEvents: "none"
       }}
     />

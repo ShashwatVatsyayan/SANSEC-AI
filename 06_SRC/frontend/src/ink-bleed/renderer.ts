@@ -1,4 +1,4 @@
-import type { Snapshot } from './capture';
+import { createFallbackSnapshot, type Snapshot } from './capture';
 import type { Theme } from './params';
 import { createProgram, type Program } from './program';
 import { createNoiseTexture } from './noiseTexture';
@@ -98,6 +98,10 @@ export class InkRenderer {
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
     gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
     gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.NONE);
+
+    // Seed instant fallback snapshots so WebGL transitions work immediately
+    this.upload(createFallbackSnapshot('dark'));
+    this.upload(createFallbackSnapshot('light'));
   }
 
   watchContext(onLost: () => void, onRestored: () => void): void {
@@ -145,8 +149,8 @@ export class InkRenderer {
     entry.key = snapshot.key;
   }
 
-  hasValid(theme: Theme, key: string): boolean {
-    return !this.lost && this.textures.get(theme)?.key === key;
+  hasValid(theme: Theme, _key?: string): boolean {
+    return !this.lost && this.textures.has(theme);
   }
 
   freeze(frame: InkFrame): boolean {

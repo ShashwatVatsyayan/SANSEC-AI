@@ -9,9 +9,29 @@ export interface Snapshot {
 }
 
 const BACKGROUND: Record<Theme, string> = {
-  light: '#f8fafc',
+  light: '#f6f4ef',
   dark: '#080a0f',
 };
+
+export function createFallbackSnapshot(theme: Theme): Snapshot {
+  const canvas = typeof document !== 'undefined' ? document.createElement('canvas') : ({} as HTMLCanvasElement);
+  if (canvas.getContext) {
+    canvas.width = 512;
+    canvas.height = 512;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.fillStyle = BACKGROUND[theme];
+      ctx.fillRect(0, 0, 512, 512);
+    }
+  }
+  return {
+    theme,
+    canvas,
+    scale: 1,
+    key: 'fallback',
+    ms: 0,
+  };
+}
 
 const isCoarsePointer = (): boolean =>
   typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
@@ -42,7 +62,7 @@ export async function capturePage(theme: Theme, scale: number, maxTextureSize: n
 
   const { default: html2canvas } = await import('html2canvas');
   const canvas = await html2canvas(document.body, {
-    scale: safeScale,
+    scale: Math.min(safeScale, 1.25),
     backgroundColor: BACKGROUND[theme],
     x: 0,
     y: 0,
@@ -54,6 +74,9 @@ export async function capturePage(theme: Theme, scale: number, maxTextureSize: n
     windowHeight: document.documentElement.clientHeight,
     logging: false,
     useCORS: true,
+    ignoreElements: (element) =>
+      element.hasAttribute('data-html2canvas-ignore') ||
+      (element.tagName === 'CANVAS' && !element.classList.contains('allow-capture')),
     onclone: (doc) => {
       doc.documentElement.dataset.theme = theme;
       doc.querySelectorAll<HTMLElement>('[data-ink-live]').forEach((el) => {

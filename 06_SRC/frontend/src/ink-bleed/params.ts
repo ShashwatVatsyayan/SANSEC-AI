@@ -28,5 +28,5 @@ export const inkParams: InkParams = {
 /** Pigment colour pooled at the frontier, keyed by the theme being revealed. */
 export const RIM_COLOR: Record<Theme, [number, number, number]> = {
   dark: [0.03, 0.04, 0.06], // ink density matching #080a0f obsidian page
-  light: [0.98, 0.98, 0.99], // bleach density matching #f8fafc light page
+  light: [0.965, 0.957, 0.937], // warm pigment density matching #f6f4ef cream page
 };

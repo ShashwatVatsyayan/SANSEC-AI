@@ -38,14 +38,14 @@ export const ThreatScore: React.FC<ThreatScoreProps> = ({ score, level, size = '
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        boxShadow: `0 0 24px ${color}28`,
+        boxShadow: 'var(--shadow-md)',
         flexShrink: 0,
       }}
     >
       <span style={{ fontSize: numSize, fontWeight: 800, fontFamily: 'var(--font-mono)', color, lineHeight: 1 }}>
         {score}
       </span>
-      <span style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase', marginTop: 2 }}>
+      <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', color: 'var(--text-secondary)', textTransform: 'uppercase', marginTop: 3 }}>
         {getLabel(level)}
       </span>
     </div>

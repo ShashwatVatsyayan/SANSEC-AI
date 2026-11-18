@@ -31,36 +31,38 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 14px 0;
+  padding: 10px 0;
   border-bottom: 1px solid var(--border-color);
   margin-bottom: 8px;
 }
 
-.sidebar-logo-icon {
-  width: 28px;
-  height: 28px;
-  background: var(--accent-red);
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 0 16px rgba(229,57,53,0.35);
+.sidebar-logo-img {
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+  transition: transform 0.2s ease;
   flex-shrink: 0;
+}
+
+.sidebar-logo:hover .sidebar-logo-img {
+  transform: scale(1.08);
 }
 
 .nav-menu {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
   padding: 8px 6px;
   flex: 1;
   width: 100%;
 }
 
 .nav-item {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
   border-radius: 10px;
   display: flex;
   align-items: center;
@@ -123,15 +125,11 @@
   cursor: pointer;
 }
 
-.header-logo-badge {
-  width: 24px;
-  height: 24px;
-  background: var(--accent-red);
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 0 10px rgba(229,57,53,0.3);
+.header-logo-img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 .header-wordmark {
@@ -172,12 +170,6 @@
   height: 6px;
   border-radius: 50%;
   background: var(--accent-teal);
-  animation: pulse-dot 2s infinite;
-}
-
-@keyframes pulse-dot {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
 }
 
 /* Profile pill */
@@ -296,8 +288,8 @@
 }
 
 .btn-primary:hover {
-  background: var(--accent-red-soft);
-  box-shadow: 0 0 14px rgba(229,57,53,0.3);
+  background: var(--accent-red-hover);
+  box-shadow: var(--shadow-md);
   transform: translateY(-1px);
 }
 
@@ -1207,158 +1199,748 @@
   color: var(--text-secondary);
 }
 
-/* ── Auth Page ────────────────────────────────────────────────── */
-.auth-wrapper {
+/* ── Crucible Editorial Portal & Obsidian Terminal ──────────── */
+.crucible-portal-root {
   min-height: 100svh;
   width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  position: relative;
   background: var(--bg-primary);
-  background-image:
-    linear-gradient(rgba(229,57,53,0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(229,57,53,0.03) 1px, transparent 1px);
-  background-size: 40px 40px;
-  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
 }
 
-.login-card {
+.crucible-nav {
+  position: sticky;
+  top: 0;
+  z-index: 40;
   width: 100%;
-  max-width: 380px;
-  background: var(--panel-bg);
-  border: 1px solid var(--border-color);
-  border-radius: 14px;
-  padding: 32px 28px;
-  box-shadow: var(--shadow-lg), 0 0 60px rgba(229,57,53,0.05);
+  background: rgba(8, 10, 15, 0.76);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border-color);
+  padding: 0 24px;
 }
 
-.login-logo-section {
+.crucible-nav-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  height: 68px;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.crucible-brand {
+  display: flex;
+  align-items: center;
   gap: 10px;
-  margin-bottom: 4px;
+  cursor: pointer;
+  text-decoration: none;
+  background: none;
+  border: none;
 }
 
-.login-logo-icon {
-  width: 34px;
-  height: 34px;
-  background: var(--accent-red);
-  border-radius: 9px;
+.crucible-brand-img {
+  height: 38px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 10px rgba(20, 184, 166, 0.4));
+}
+
+.crucible-brand-name {
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--text-primary);
   display: flex;
   align-items: center;
-  justify-content: center;
-  box-shadow: 0 0 20px rgba(229,57,53,0.35);
+  gap: 6px;
+  font-family: var(--font-sans);
 }
 
-.login-title {
-  font-size: 1.3rem;
-  font-weight: 800;
-  letter-spacing: 0.02em;
+.crucible-brand-badge {
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--accent-red);
+  color: #fff;
+  padding: 2px 7px;
+  border-radius: 4px;
+  letter-spacing: 0.08em;
 }
 
-.login-title span { color: var(--accent-red-soft); }
+.crucible-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
 
-.login-subtitle {
-  font-size: 10px;
-  font-weight: 600;
+.crucible-nav-link {
+  background: none;
+  border: none;
+  font-size: 13px;
+  font-weight: 500;
   color: var(--text-muted);
-  letter-spacing: 0.15em;
-  text-align: center;
-  margin-bottom: 24px;
-  text-transform: uppercase;
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: var(--font-sans);
 }
 
-.login-form { display: flex; flex-direction: column; gap: 14px; }
+.crucible-nav-link:hover {
+  color: var(--text-primary);
+}
 
-.form-group { display: flex; flex-direction: column; gap: 5px; }
+.crucible-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
 
-.form-group label {
+.crucible-status-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  background: rgba(34, 197, 94, 0.08);
+  border: 1px solid rgba(34, 197, 94, 0.25);
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: #86efac;
+}
+
+.crucible-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 8px #22c55e;
+}
+
+.crucible-admin-quick-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  background: rgba(20, 184, 166, 0.12);
+  border: 1px solid rgba(20, 184, 166, 0.32);
+  color: #5eead4;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  min-height: 36px;
+  font-family: var(--font-sans);
+}
+
+.crucible-admin-quick-btn:hover {
+  background: rgba(20, 184, 166, 0.22);
+  border-color: rgba(20, 184, 166, 0.55);
+}
+
+.crucible-request-access-btn {
+  padding: 7px 18px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-hover);
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  min-height: 36px;
+  font-family: var(--font-sans);
+}
+
+.crucible-request-access-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* ── Hero & Terminal Grid ─────────────────────────────────── */
+.crucible-main-container {
+  flex: 1;
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  padding: 48px 24px;
+}
+
+.crucible-content-grid {
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 48px;
+  align-items: center;
+}
+
+.crucible-hero-section {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.crucible-hero-content {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.crucible-title {
+  font-size: clamp(2.8rem, 5.5vw, 4.4rem);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  color: #f8fafc;
+  font-family: var(--font-sans);
+}
+
+.crucible-gradient-title {
+  color: #38bdf8;
+}
+
+.crucible-description {
+  font-size: clamp(1rem, 1.2vw, 1.15rem);
+  line-height: 1.6;
+  color: var(--text-secondary);
+  max-width: 540px;
+  font-weight: 400;
+}
+
+.crucible-hero-cta-group {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+
+.crucible-btn-primary {
+  padding: 12px 26px;
+  border-radius: 28px;
+  background: #f59e0b;
+  color: #080a0f;
+  font-size: 14px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-sans);
+}
+
+.crucible-btn-primary:hover {
+  background: #fbbf24;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+}
+
+.crucible-btn-secondary {
+  padding: 12px 26px;
+  border-radius: 28px;
+  background: rgba(15, 22, 36, 0.65);
+  border: 1px solid var(--border-hover);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(8px);
+  font-family: var(--font-sans);
+}
+
+.crucible-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* ── Live Telemetry Card ─────────────────────────────────── */
+.crucible-telemetry-card {
+  background: rgba(15, 22, 36, 0.75);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 16px 20px;
+  backdrop-filter: blur(12px);
+  max-width: 540px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.crucible-telemetry-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.crucible-telemetry-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.crucible-telemetry-key-badge {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: #14b8a6;
+  font-size: 13px;
+}
+
+.crucible-telemetry-name {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.crucible-telemetry-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: rgba(20, 184, 166, 0.12);
+  color: #5eead4;
+  border: 1px solid rgba(20, 184, 166, 0.25);
+}
+
+.crucible-telemetry-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.crucible-telemetry-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 8px;
+}
+
+.crucible-telemetry-metric {
+  color: #38bdf8;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.crucible-telemetry-hint {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+/* ── Capability Pills Ticker ─────────────────────────────── */
+.crucible-pills-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.crucible-pills-label {
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
+  letter-spacing: 0.08em;
   color: var(--text-muted);
+}
+
+.crucible-pills-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.crucible-shortcut-pill {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(15, 22, 36, 0.7);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: var(--transition);
+  min-height: 34px;
+}
+
+.crucible-shortcut-pill:hover {
+  border-color: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.crucible-shortcut-pill.selected {
+  border-color: rgba(20, 184, 166, 0.5);
+  background: rgba(20, 184, 166, 0.12);
+}
+
+.crucible-pill-key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: #f8fafc;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.crucible-pill-text {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.crucible-disclaimer {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.4;
+  max-width: 500px;
+}
+
+/* ── Obsidian Authentication Terminal ─────────────────────── */
+.crucible-terminal-section {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.crucible-terminal-card {
+  width: 100%;
+  max-width: 440px;
+  background: rgba(15, 22, 36, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(45, 212, 191, 0.35);
+  border-radius: 16px;
+  padding: 32px 28px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75), 0 0 35px rgba(20, 184, 166, 0.06);
+}
+
+.terminal-card-header {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.terminal-brand-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.terminal-logo-img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 10px rgba(20, 184, 166, 0.3));
+}
+
+.terminal-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.terminal-subtitle {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  text-transform: uppercase;
   letter-spacing: 0.06em;
 }
 
-.input-wrapper { position: relative; display: flex; align-items: center; }
+.terminal-tabs-nav {
+  display: flex;
+  background: rgba(8, 10, 15, 0.6);
+  padding: 3px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
 
-.input-icon {
+.terminal-tab-btn {
+  flex: 1;
+  padding: 7px 12px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: var(--transition);
+  min-height: 34px;
+  font-family: var(--font-sans);
+}
+
+.terminal-tab-btn.active {
+  background: rgba(255, 255, 255, 0.09);
+  color: var(--text-primary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.terminal-admin-strip {
+  padding: 9px 12px;
+  border-radius: 8px;
+  background: rgba(20, 184, 166, 0.08);
+  border: 1px solid rgba(20, 184, 166, 0.22);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.terminal-admin-info {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.terminal-admin-btn {
+  background: rgba(20, 184, 166, 0.16);
+  border: 1px solid rgba(20, 184, 166, 0.35);
+  color: #5eead4;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: var(--transition);
+  min-height: 28px;
+  font-family: var(--font-sans);
+}
+
+.terminal-admin-btn:hover {
+  background: rgba(20, 184, 166, 0.26);
+  border-color: rgba(20, 184, 166, 0.5);
+}
+
+.terminal-alert-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  margin-bottom: 14px;
+}
+
+.terminal-alert-box.error {
+  background: rgba(239, 68, 68, 0.09);
+  border: 1px solid rgba(239, 68, 68, 0.28);
+  color: #fca5a5;
+}
+
+.terminal-alert-box.success {
+  background: rgba(34, 197, 94, 0.09);
+  border: 1px solid rgba(34, 197, 94, 0.28);
+  color: #86efac;
+}
+
+.terminal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.terminal-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.terminal-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.terminal-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.terminal-link-subtle {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 11px;
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: var(--font-sans);
+}
+
+.terminal-link-subtle:hover {
+  color: var(--text-secondary);
+  text-decoration: underline;
+}
+
+.terminal-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.terminal-input-icon {
   position: absolute;
-  left: 11px;
+  left: 12px;
   color: var(--text-muted);
   pointer-events: none;
   z-index: 1;
 }
 
-.login-input {
+.terminal-input {
   width: 100%;
-  background: var(--bg-secondary);
+  background: rgba(8, 10, 15, 0.65);
   border: 1px solid var(--border-color);
-  border-radius: 7px;
-  padding: 9px 12px 9px 36px !important;
+  border-radius: 8px;
+  padding: 10px 14px 10px 38px !important;
   color: var(--text-primary);
   font-size: 13px;
   font-family: var(--font-sans);
   outline: none;
   transition: var(--transition);
+  min-height: 42px;
 }
 
-.login-input:focus { border-color: rgba(229,57,53,0.4); }
-.login-input::placeholder { color: var(--text-muted); opacity: 0.7; }
+.terminal-input:focus {
+  border-color: rgba(20, 184, 166, 0.6);
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.12);
+}
 
-.auth-error-box {
+.terminal-pwd-toggle {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+}
+
+.terminal-pwd-toggle:hover {
+  color: var(--text-primary);
+}
+
+.terminal-options-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.terminal-checkbox-label {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(229,57,53,0.08);
-  border: 1px solid rgba(229,57,53,0.2);
-  color: var(--threat-critical);
-  padding: 9px 12px;
-  border-radius: 7px;
-  font-size: 12px;
+  cursor: pointer;
+  user-select: none;
 }
 
-.btn-login {
+.terminal-checkbox {
+  accent-color: var(--accent-red);
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.terminal-tag-mono {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+}
+
+.terminal-submit-btn {
   width: 100%;
-  padding: 10px 16px;
+  min-height: 44px;
+  padding: 11px 16px;
   background: var(--accent-red);
   border: none;
-  border-radius: 7px;
+  border-radius: 8px;
   color: #fff;
   font-size: 14px;
   font-weight: 700;
   font-family: var(--font-sans);
   cursor: pointer;
   transition: var(--transition);
-  box-shadow: 0 0 16px rgba(229,57,53,0.25);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
-.btn-login:hover { background: var(--accent-red-soft); box-shadow: 0 0 22px rgba(229,57,53,0.35); }
-.btn-login:disabled { opacity: 0.6; cursor: not-allowed; }
+.terminal-submit-btn:hover {
+  background: var(--accent-red-hover);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+}
 
-.auth-divider {
+.terminal-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.terminal-divider {
   display: flex;
   align-items: center;
   gap: 10px;
   color: var(--text-muted);
   font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  margin: 4px 0;
 }
 
-.auth-divider::before,
-.auth-divider::after {
+.terminal-divider::before,
+.terminal-divider::after {
   content: '';
   flex: 1;
   height: 1px;
   background: var(--border-color);
 }
 
-.btn-google {
+.terminal-google-btn {
   width: 100%;
+  min-height: 42px;
   padding: 9px 16px;
-  background: transparent;
+  background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--border-color);
-  border-radius: 7px;
+  border-radius: 8px;
   color: var(--text-secondary);
   font-size: 13px;
   font-weight: 600;
@@ -1371,15 +1953,19 @@
   gap: 8px;
 }
 
-.btn-google:hover { border-color: var(--border-hover); color: var(--text-primary); }
+.terminal-google-btn:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: var(--border-hover);
+  color: var(--text-primary);
+}
 
-.auth-toggle-link {
+.terminal-bottom-toggle {
   font-size: 12px;
   color: var(--text-muted);
   text-align: center;
 }
 
-.auth-toggle-link button {
+.terminal-highlight-btn {
   background: none;
   border: none;
   color: var(--accent-red-soft);
@@ -1389,21 +1975,195 @@
   transition: var(--transition);
 }
 
-.auth-toggle-link button:hover { color: var(--accent-red); }
+.terminal-highlight-btn:hover {
+  color: var(--accent-red);
+}
 
-.password-toggle {
-  position: absolute;
-  right: 11px;
+.terminal-notice-text {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+
+.terminal-back-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 38px;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: var(--font-sans);
+}
+
+.terminal-back-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+}
+
+/* ── Feature Spec Modal ───────────────────────────────────── */
+.crucible-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.crucible-modal-box {
+  width: 100%;
+  max-width: 580px;
+  background: #0f1624;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.crucible-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 14px;
+}
+
+.crucible-modal-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.crucible-modal-close {
   background: none;
   border: none;
   color: var(--text-muted);
+  font-size: 16px;
   cursor: pointer;
-  transition: var(--transition);
-  padding: 0;
-  display: flex;
+  padding: 4px;
 }
 
-.password-toggle:hover { color: var(--text-secondary); }
+.crucible-modal-close:hover {
+  color: var(--text-primary);
+}
+
+.crucible-modal-lead {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.crucible-spec-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.crucible-spec-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  background: rgba(8, 10, 15, 0.5);
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.spec-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #14b8a6;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.spec-value {
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.crucible-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid var(--border-color);
+  padding-top: 14px;
+}
+
+/* ── Responsive Queries for Crucible Portal ───────────────── */
+@media (max-width: 1024px) {
+  .crucible-content-grid {
+    grid-template-columns: 1fr;
+    gap: 36px;
+  }
+
+  .crucible-nav-links {
+    display: none;
+  }
+
+  .crucible-title {
+    font-size: 2.6rem;
+    text-align: center;
+  }
+
+  .crucible-description {
+    text-align: center;
+    margin: 0 auto;
+  }
+
+  .crucible-hero-cta-group {
+    justify-content: center;
+  }
+
+  .crucible-telemetry-card {
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .crucible-pills-container {
+    align-items: center;
+  }
+
+  .crucible-pills-row {
+    justify-content: center;
+  }
+
+  .crucible-disclaimer {
+    text-align: center;
+  }
+}
+
+@media (max-width: 640px) {
+  .crucible-main-container {
+    padding: 24px 14px;
+  }
+
+  .crucible-terminal-card {
+    padding: 24px 16px;
+  }
+
+  .crucible-nav {
+    padding: 0 14px;
+  }
+
+  .crucible-status-pill {
+    display: none;
+  }
+}
 
 /* ── Analytics ────────────────────────────────────────────────── */
 .analytics-grid {
@@ -1492,17 +2252,65 @@
 .sidebar-toggle-btn:hover { background: rgba(229,57,53,0.08); color: var(--accent-red-soft); }
 
 /* ── Responsive ───────────────────────────────────────────────── */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .sidebar { width: 60px; }
+  .stats-row { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .dashboard-default { grid-template-columns: 1fr; }
+  .analytics-grid { grid-template-columns: 1fr; }
+  .recent-grid { grid-template-columns: 1fr; }
+  .workspace-content { padding: 18px 16px; }
+  .scanner-layout { grid-template-columns: 1fr; }
+  .history-table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+}
+
 @media (max-width: 768px) {
   .sidebar { display: none; }
-  .mobile-bottom-nav { display: block; }
+  .mobile-bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: calc(58px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    background: rgba(13, 17, 23, 0.95);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid var(--border-color);
+    z-index: 50;
+    justify-content: space-around;
+    align-items: center;
+  }
+
+  .mobile-nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 500;
+    gap: 3px;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  .mobile-nav-item.active {
+    color: var(--accent-red-soft);
+  }
 
   .workspace-main {
     height: 100dvh;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .workspace-content {
-    padding: 14px 12px calc(72px + env(safe-area-inset-bottom, 0px));
+    padding: 14px 12px calc(76px + env(safe-area-inset-bottom, 0px));
   }
 
   .stats-row { grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -1517,7 +2325,7 @@
   .topbar { flex-direction: column; align-items: flex-start; gap: 8px; }
   .topbar > div:last-child { width: 100%; }
 
-  .results-header { flex-direction: column; align-items: flex-start; }
+  .results-header { flex-direction: column; align-items: flex-start; gap: 10px; }
   .results-header > div:last-child { width: 100%; flex-wrap: wrap; }
 
   .pe-meta-grid { grid-template-columns: 1fr; }
@@ -1525,9 +2333,15 @@
   .history-table th:nth-child(4),
   .history-table td:nth-child(4) { display: none; }
 
+  .history-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+  }
+
   .login-card { padding: 24px 18px; }
 
-  h2 { font-size: 1.1rem; }
+  h2 { font-size: 1.15rem; }
 
   .top-header-bar { padding: 9px 14px; }
 
@@ -1542,8 +2356,8 @@
 
 @media (max-width: 400px) {
   .stats-row { gap: 6px; }
-  .stat-value { font-size: 1.4rem; }
-  .workspace-content { padding: 10px 10px 80px; }
+  .stat-value { font-size: 1.35rem; }
+  .workspace-content { padding: 10px 10px 84px; }
 }
 
 @media (min-width: 769px) {

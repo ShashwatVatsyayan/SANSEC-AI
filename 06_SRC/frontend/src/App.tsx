@@ -42,6 +42,7 @@ import {
 import { useAuth } from "./context/AuthContext.tsx";
 import { AuthPage } from "./components/AuthPage.tsx";
 import { BlackHoleBackground } from "./components/BlackHoleBackground.tsx";
+import { NotFoundPage } from "./components/NotFoundPage.tsx";
 
 export const formatFileSize = (bytes: number): string => {
   if (!bytes || bytes <= 0) return "0 B";
@@ -122,12 +123,48 @@ async function dissectFileLocally(file: File): Promise<AnalysisReport> {
 }
 
 
+const getTabFromPath = (path: string): string => {
+  const clean = path.replace(/^\/+|\/+$/g, "").toLowerCase();
+  if (!clean || clean === "dashboard" || clean === "home") return "dashboard";
+  if (clean === "scanner" || clean === "scan") return "scanner";
+  if (clean === "analytics" || clean === "threats") return "analytics";
+  if (clean === "history") return "history";
+  if (clean === "settings") return "settings";
+  if (clean === "admin") return "admin";
+  if (clean === "profile") return "profile";
+  return "404";
+};
+
 function App() {
   // Authentication State via Context
   const { isAuthenticated, user: currentUser, logout, updateUserAvatar } = useAuth();
 
-  // Navigation and Workspace State
-  const [activeTab, setActiveTab] = useState<string>("dashboard");
+  // Navigation and Workspace State (with URL route synchronization)
+  const [activeTab, setActiveTabState] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      return getTabFromPath(window.location.pathname);
+    }
+    return "dashboard";
+  });
+
+  const setActiveTab = (tab: string) => {
+    setActiveTabState(tab);
+    if (typeof window !== "undefined") {
+      const targetUrl = tab === "dashboard" ? "/" : `/${tab}`;
+      if (window.location.pathname !== targetUrl) {
+        window.history.pushState(null, "", targetUrl);
+      }
+    }
+  };
+
+  useEffect(() => {
+    const handlePopState = () => {
+      setActiveTabState(getTabFromPath(window.location.pathname));
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
   const [selectedReport, setSelectedReport] = useState<AnalysisReport | null>(null);
   
   // Sidebar & Topbar UI State
@@ -673,6 +710,15 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
     };
   }, [history]);
 
+  if (activeTab === "404") {
+    return (
+      <NotFoundPage 
+        onNavigateHome={() => setActiveTab("dashboard")} 
+        onNavigateScanner={() => setActiveTab("scanner")} 
+      />
+    );
+  }
+
   if (!isAuthenticated) {
     return <AuthPage />;
   }
@@ -691,53 +737,69 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
 
       {/* Compact Icon Sidebar Navigation */}
       <aside className={`sidebar ${isMobileMenuOpen ? "mobile-open" : ""}`}>
-        <div className="sidebar-logo cursor-pointer" onClick={() => { setActiveTab("dashboard"); setSelectedReport(null); }}>
-          <div className="sidebar-logo-icon">
-            <Shield size={16} className="text-white" />
-          </div>
-        </div>
+        <button 
+          type="button"
+          className="sidebar-logo cursor-pointer" 
+          onClick={() => { setActiveTab("dashboard"); setSelectedReport(null); }}
+          style={{ background: 'transparent', border: 'none', borderBottom: '1px solid var(--border-color)', cursor: 'pointer' }}
+          aria-label="SANSEC AI Home Dashboard"
+        >
+          <img src="/sansec-logo.png" alt="SANSEC AI Logo" className="sidebar-logo-img" />
+        </button>
 
-        <nav className="nav-menu">
+        <nav className="nav-menu" aria-label="Primary Navigation">
           <button 
+            type="button"
             className={`nav-item ${activeTab === "dashboard" ? "active" : ""}`}
             onClick={() => { setActiveTab("dashboard"); setSelectedReport(null); setIsMobileMenuOpen(false); }}
             title="Security Dashboard"
+            aria-label="Security Dashboard"
           >
             <TrendingUp size={18} />
           </button>
           <button 
+            type="button"
             className={`nav-item ${activeTab === "scanner" ? "active" : ""}`}
             onClick={() => { setActiveTab("scanner"); setIsMobileMenuOpen(false); }}
             title="Heuristic Dissection Scanner"
+            aria-label="Heuristic Dissection Scanner"
           >
             <Cpu size={18} />
           </button>
           <button 
+            type="button"
             className={`nav-item ${activeTab === "analytics" ? "active" : ""}`}
             onClick={() => { setActiveTab("analytics"); setIsMobileMenuOpen(false); }}
             title="Threat Analytics & Trends"
+            aria-label="Threat Analytics & Trends"
           >
             <FileCode size={18} />
           </button>
           <button 
+            type="button"
             className={`nav-item ${activeTab === "history" ? "active" : ""}`}
             onClick={() => { setActiveTab("history"); setIsMobileMenuOpen(false); }}
             title={`Scan History (${history.length})`}
+            aria-label={`Scan History (${history.length} records)`}
           >
             <HistIcon size={18} />
           </button>
           <button 
+            type="button"
             className={`nav-item ${activeTab === "settings" ? "active" : ""}`}
             onClick={() => { setActiveTab("settings"); setIsMobileMenuOpen(false); }}
             title="Workspace Settings"
+            aria-label="Workspace Settings"
           >
             <Settings size={18} />
           </button>
           {currentUser?.role === "Admin" && (
             <button 
+              type="button"
               className={`nav-item ${activeTab === "admin" ? "active" : ""}`}
               onClick={() => { setActiveTab("admin"); setIsMobileMenuOpen(false); }}
               title="Admin User Management"
+              aria-label="Admin User Management"
             >
               <ShieldCheck size={18} />
             </button>
@@ -745,7 +807,14 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
         </nav>
 
         <div className="sidebar-footer">
-          <button onClick={handleLogout} className="nav-item" style={{ color: 'var(--accent-red-soft)' }} title="Sign Out">
+          <button 
+            type="button"
+            onClick={handleLogout} 
+            className="nav-item" 
+            style={{ color: 'var(--accent-red-soft)' }} 
+            title="Sign Out"
+            aria-label="Sign Out"
+          >
             <LogOut size={16} />
           </button>
         </div>
@@ -756,12 +825,16 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
         {/* Top Header Bar */}
         <header className={`top-header-bar ${!isHeaderVisible ? "header-collapsed" : ""}`}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div className="header-logo" onClick={() => { setActiveTab("dashboard"); setSelectedReport(null); }}>
-              <div className="header-logo-badge">
-                <Shield size={14} className="text-white" />
-              </div>
+            <button 
+              type="button"
+              className="header-logo" 
+              onClick={() => { setActiveTab("dashboard"); setSelectedReport(null); }}
+              style={{ background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left', padding: 0 }}
+              aria-label="SANSEC AI Dashboard Overview"
+            >
+              <img src="/sansec-logo.png" alt="SANSEC AI Logo" className="header-logo-img" />
               <span className="header-wordmark">SANSEC <span>AI</span></span>
-            </div>
+            </button>
 
             <div style={{ width: 1, height: 16, background: 'var(--border-color)' }} />
 
@@ -1349,10 +1422,10 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
                           {isChatTyping && (
                             <div className="chat-message ai">
                               <div className="chat-message-bubble">
-                                <div className="flex gap-1 items-center py-2 px-1">
-                                  <span className="chat-dot animate-bounce">.</span>
-                                  <span className="chat-dot animate-bounce delay-100">.</span>
-                                  <span className="chat-dot animate-bounce delay-200">.</span>
+                                <div className="flex gap-1.5 items-center py-2 px-2">
+                                  <span className="w-2 h-2 rounded-full bg-accent-red opacity-80 animate-pulse" />
+                                  <span className="w-2 h-2 rounded-full bg-accent-red opacity-80 animate-pulse" style={{ animationDelay: "150ms" }} />
+                                  <span className="w-2 h-2 rounded-full bg-accent-red opacity-80 animate-pulse" style={{ animationDelay: "300ms" }} />
                                 </div>
                               </div>
                             </div>
@@ -2039,38 +2112,48 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
         </AnimatePresence>
         </div>
         {/* ── Mobile Bottom Tab Navigation (hidden on desktop via CSS) ── */}
-        <nav className="mobile-bottom-nav">
+        <nav className="mobile-bottom-nav" aria-label="Mobile Navigation">
           <button
+            type="button"
             className={`mobile-nav-item ${activeTab === "dashboard" ? "active" : ""}`}
             onClick={() => { setActiveTab("dashboard"); setSelectedReport(null); }}
+            aria-label="Security Dashboard Home"
           >
             <span className="mobile-nav-icon-wrap"><TrendingUp size={18} /></span>
             <span className="mobile-nav-label">Home</span>
           </button>
           <button
+            type="button"
             className={`mobile-nav-item ${activeTab === "scanner" ? "active" : ""}`}
             onClick={() => setActiveTab("scanner")}
+            aria-label="Heuristic Dissection Scanner"
           >
             <span className="mobile-nav-icon-wrap"><Cpu size={18} /></span>
             <span className="mobile-nav-label">Scan</span>
           </button>
           <button
+            type="button"
             className={`mobile-nav-item ${activeTab === "analytics" ? "active" : ""}`}
             onClick={() => setActiveTab("analytics")}
+            aria-label="Threat Analytics & Trends"
           >
             <span className="mobile-nav-icon-wrap"><FileCode size={18} /></span>
             <span className="mobile-nav-label">Threats</span>
           </button>
           <button
+            type="button"
             className={`mobile-nav-item ${activeTab === "history" ? "active" : ""}`}
             onClick={() => setActiveTab("history")}
+            aria-label={`Scan History Records (${history.length})`}
           >
             <span className="mobile-nav-icon-wrap"><HistIcon size={18} /></span>
             <span className="mobile-nav-label">History</span>
           </button>
           <button
+            type="button"
             className={`mobile-nav-item ${activeTab === "settings" ? "active" : ""}`}
             onClick={() => setActiveTab("settings")}
+            aria-label="Workspace Settings"
           >
             <span className="mobile-nav-icon-wrap"><Settings size={18} /></span>
             <span className="mobile-nav-label">Settings</span>

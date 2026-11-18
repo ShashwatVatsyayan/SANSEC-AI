@@ -67,3 +67,9 @@ reports/
 
 # --- CONTAINERIZATION LIFECYCLE ---
 *.pid
+
+# --- AGENT & TOOLING CACHE ---
+.agents/
+.codex/
+.impeccable/
+skills-lock.json

@@ -192,6 +192,7 @@ function App() {
   const [scanProgress, setScanProgress] = useState<number>(0);
   const [scanLogs, setScanLogs] = useState<string[]>([]);
   const [scanError, setScanError] = useState<string>("");
+  const [isDropModalOpen, setIsDropModalOpen] = useState<boolean>(false);
   
   // Reports and AI state
   const [aiExplanation, setAiExplanation] = useState<string>("");
@@ -359,18 +360,24 @@ function App() {
     e.preventDefault();
     setIsDragging(false);
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      setFile(e.dataTransfer.files[0]);
+      const droppedFile = e.dataTransfer.files[0];
+      setFile(droppedFile);
       setScanError("");
+      setIsDropModalOpen(false);
+      startScan(droppedFile);
     }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
+      const selectedFile = e.target.files[0];
+      setFile(selectedFile);
       setScanError("");
       setScanLogs([]);
       setIsScanning(false);
       setScanProgress(0);
+      setIsDropModalOpen(false);
+      startScan(selectedFile);
     }
   };
 
@@ -735,6 +742,16 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
         onChange={handleAvatarUpload}
       />
 
+      {/* Global Hidden File Input for Target Payload Dissection */}
+      <input 
+        type="file" 
+        ref={fileInputRef} 
+        onChange={handleFileChange}
+        accept=".exe,.dll,.sys,.scr,.pdf,.zip,.gz,.7z,.class,.py,.js,.sh,.ps1,.bat,.vbs"
+        style={{ display: "none" }}
+        id="global-payload-file-input"
+      />
+
       {/* Compact Icon Sidebar Navigation */}
       <aside className={`sidebar ${isMobileMenuOpen ? "mobile-open" : ""}`}>
         <button 
@@ -956,13 +973,145 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.3 }}
             >
-              <div className="topbar">
-                <div>
-                  <h2>Security overview</h2>
-                  <p className="text-secondary text-sm">Your recent analysis activity and threat metrics</p>
-                </div>
-                <div className="time-badge mono">
-                  📅 UTC: {new Date().toISOString().split("T")[0]}
+              {/* Coffer-Style Security Portal Hero */}
+              <div className="coffer-hero-container">
+                <div className="coffer-hero-grid">
+                  
+                  {/* Left Column: Editorial Headline & Actions */}
+                  <div className="coffer-hero-left">
+                    <div className="coffer-status-chip">
+                      <span className="coffer-chip-dot" />
+                      <span>142 SENSORS ONLINE • ZERO-DAY HEURISTICS ACTIVE</span>
+                    </div>
+
+                    <h2 className="coffer-hero-title">
+                      Threats you can see<br />
+                      across every payload<br />
+                      <span className="coffer-hero-title-accent">you execute</span>
+                    </h2>
+
+                    <p className="coffer-hero-subtitle">
+                      SANSEC AI gives SecOps teams complete visibility into binary telemetry, section entropy, and suspicious imports without risking host integrity.
+                    </p>
+
+                    <div className="coffer-hero-actions">
+                      <button 
+                        type="button"
+                        className="coffer-btn-primary"
+                        onClick={() => setIsDropModalOpen(true)}
+                      >
+                        <Upload size={16} />
+                        <span>Start Dissection</span>
+                      </button>
+                      <button 
+                        type="button"
+                        className="coffer-btn-secondary"
+                        onClick={() => setActiveTab("analytics")}
+                      >
+                        <TrendingUp size={16} />
+                        <span>View Analytics</span>
+                      </button>
+                    </div>
+
+                    <div className="coffer-trust-strip">
+                      <span className="coffer-trust-label">TRUSTED BY TIER-1 SOAR PLATFORMS AT</span>
+                      <div className="coffer-trust-logos">
+                        <span>CROWDSTRIKE</span>
+                        <span className="coffer-trust-dot">•</span>
+                        <span>SENTINEL</span>
+                        <span className="coffer-trust-dot">•</span>
+                        <span>CYBERARK</span>
+                        <span className="coffer-trust-dot">•</span>
+                        <span>MANDIANT</span>
+                        <span className="coffer-trust-dot">•</span>
+                        <span>PALO ALTO</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right Column: 2 Floating Cyber Glass Cards */}
+                  <div className="coffer-hero-right">
+                    {/* Top Card: Reserve / Heuristic Policy Card */}
+                    <div className="coffer-card policy-card">
+                      <div className="coffer-card-header">
+                        <span className="coffer-card-label">HEURISTIC DEFENSE POLICY</span>
+                        <span className="coffer-card-badge">ACTIVE SHIELD</span>
+                      </div>
+
+                      <div className="coffer-metric-split">
+                        <div className="coffer-split-col">
+                          <span className="coffer-split-num">84%</span>
+                          <span className="coffer-split-sub">operating</span>
+                        </div>
+                        <span className="coffer-split-divider">/</span>
+                        <div className="coffer-split-col">
+                          <span className="coffer-split-num">16%</span>
+                          <span className="coffer-split-sub">quarantined</span>
+                        </div>
+                      </div>
+
+                      <div className="coffer-policy-meter">
+                        <div className="coffer-meter-fill operating" style={{ width: '84%' }} />
+                        <div className="coffer-meter-fill quarantined" style={{ width: '16%' }} />
+                      </div>
+
+                      <div className="coffer-card-footer">
+                        <div className="coffer-footer-row">
+                          <span className="coffer-bullet active" />
+                          <span className="text-secondary text-xs">+{stats.totalScans || 18} PE SAMPLES PARSED</span>
+                        </div>
+                        <div className="coffer-footer-row">
+                          <span className="coffer-bullet" />
+                          <span className="text-muted text-xs">NEXT SWEEP: CONTINUOUS</span>
+                        </div>
+                        <div className="coffer-footer-row">
+                          <span className="coffer-bullet" />
+                          <span className="text-muted text-xs">ENGINE: LIEF STATIC AST</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Bottom Card: Holdings / Entropy Monitor Card */}
+                    <div className="coffer-card holdings-card">
+                      <div className="coffer-card-header">
+                        <span className="coffer-card-label">SECTOR ENTROPY MONITOR</span>
+                        <span className="coffer-trend-badge">▲ HIGH ALERT</span>
+                      </div>
+
+                      <div className="coffer-holdings-metric">
+                        <span className="coffer-holdings-val">7.64 <span className="coffer-holdings-unit">SHANNON</span></span>
+                        <span className="coffer-holdings-delta">▲ 3.1%</span>
+                      </div>
+
+                      {/* Animated SVG Sparkline Wave */}
+                      <div className="coffer-sparkline-box">
+                        <svg viewBox="0 0 320 60" className="coffer-sparkline-svg" preserveAspectRatio="none">
+                          <defs>
+                            <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="#14b8a6" stopOpacity="0.35" />
+                              <stop offset="100%" stopColor="#14b8a6" stopOpacity="0.0" />
+                            </linearGradient>
+                          </defs>
+                          <path 
+                            d="M0,45 Q40,48 80,32 T160,38 T240,18 T320,24 L320,60 L0,60 Z" 
+                            fill="url(#sparkGrad)" 
+                          />
+                          <path 
+                            d="M0,45 Q40,48 80,32 T160,38 T240,18 T320,24" 
+                            fill="none" 
+                            stroke="#14b8a6" 
+                            strokeWidth="2.5" 
+                          />
+                        </svg>
+                      </div>
+                    </div>
+
+                    <div className="coffer-caption">
+                      <span>Live buffer monitoring</span>
+                      <span className="text-muted text-xs">From binary slice to MITRE matrix, sub-millisecond</span>
+                    </div>
+                  </div>
+
                 </div>
               </div>
 
@@ -989,13 +1138,13 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
               {/* Summary dashboard section */}
               <div className="dashboard-default grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="panel info-card welcome-panel lg:col-span-2">
-                  <h3>Ready to analyze files</h3>
+                  <h3>Deterministic Static Dissection</h3>
                   <p className="text-secondary mt-2">
-                    Dissect binary samples using safe static parsing methods. Drag-and-drop file executables to parse sections structures, compile cryptographic hashes, list suspicious API call imports, and map matched behaviors to standard MITRE ATT&CK matrices.
+                    Dissect binary samples using safe static parsing methods. Drop or select executables to parse sections structures, compile cryptographic hashes, list suspicious API call imports, and map matched behaviors to standard MITRE ATT&CK matrices.
                   </p>
                   <div className="flex gap-4 mt-6">
-                    <button className="btn-primary" onClick={() => setActiveTab("scanner")}>
-                      Dissect Target Sample
+                    <button className="btn-primary" onClick={() => setIsDropModalOpen(true)}>
+                      <Upload size={14} className="inline mr-1" /> Dissect Target Sample
                     </button>
                     <button className="btn-secondary" onClick={() => setActiveTab("analytics")}>
                       Disassembly Trends
@@ -1467,14 +1616,6 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
                     onDrop={handleDrop}
                     onClick={triggerFileSelect}
                   >
-                    <input 
-                      type="file" 
-                      ref={fileInputRef} 
-                      onChange={handleFileChange}
-                      accept=".exe,.dll,.sys,.scr,.pdf,.zip,.gz,.7z,.class,.py,.js,.sh,.ps1,.bat,.vbs"
-                      style={{ display: "none" }}
-                    />
-                    
                     <div className="dropzone-content pointer-events-none">
                       <Upload className="mx-auto text-muted mb-4" size={48} />
                       {file ? (
@@ -2160,6 +2301,84 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
           </button>
         </nav>
       </main>
+
+      {/* Drop Target Modal (Triggered by 'Start Dissection' or file drag-over) */}
+      <AnimatePresence>
+        {isDropModalOpen && (
+          <div 
+            className="coffer-drop-overlay"
+            onClick={() => setIsDropModalOpen(false)}
+          >
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+              className="coffer-drop-modal"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="coffer-drop-header">
+                <div className="flex items-center gap-2">
+                  <Cpu className="text-teal" size={20} />
+                  <div>
+                    <h3 className="coffer-drop-title">Drop Target Payload</h3>
+                    <p className="coffer-drop-subtitle">Deterministic static dissection &amp; heuristic inspection</p>
+                  </div>
+                </div>
+                <button 
+                  type="button" 
+                  onClick={() => setIsDropModalOpen(false)}
+                  className="coffer-drop-close"
+                  aria-label="Close modal"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div 
+                className={`coffer-drop-target ${isDragging ? "dragging" : ""}`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                onClick={triggerFileSelect}
+                role="button"
+                tabIndex={0}
+                aria-label="File upload dropzone. Click to browse files or drag and drop here."
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    triggerFileSelect();
+                  }
+                }}
+              >
+                <div className="coffer-drop-icon-box">
+                  <Upload size={36} className="text-teal" />
+                </div>
+                <h4 className="coffer-drop-prompt">
+                  Drag and drop malware sample here
+                </h4>
+                <p className="coffer-drop-hint">
+                  or click anywhere inside this box to browse local files
+                </p>
+                
+                <div className="coffer-formats-row">
+                  <span className="coffer-format-pill">EXE</span>
+                  <span className="coffer-format-pill">DLL</span>
+                  <span className="coffer-format-pill">SYS</span>
+                  <span className="coffer-format-pill">PDF</span>
+                  <span className="coffer-format-pill">ELF</span>
+                  <span className="coffer-format-pill">ZIP</span>
+                  <span className="coffer-format-pill">SCR</span>
+                  <span className="coffer-format-pill">PS1</span>
+                </div>
+
+                <span className="coffer-drop-limit">
+                  Max upload limit: {workspaceSettings.max_file_size_mb} MB (ArrayBuffer client-fallback enabled)
+                </span>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

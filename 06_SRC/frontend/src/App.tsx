@@ -26,7 +26,12 @@ import {
   Trash2,
   Camera,
   UserCheck,
-  ChevronDown
+  ChevronDown,
+  CheckCircle2,
+  Clock,
+  ArrowRight,
+  FileSearch,
+  Zap
 } from "lucide-react";
 import "./App.css";
 
@@ -1885,51 +1890,96 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
               ) : (
                 /* Scanner View */
                 <div className="scanner-container">
-                  <div className="topbar">
-                    <div>
-                      <h2>File scanner</h2>
-                      <p className="text-secondary text-sm">Run safe static analysis for supported files. Your sample is not executed.</p>
+                  <div className="mb-6">
+                    <div className="coffer-status-chip mb-3">
+                      <span className="coffer-chip-dot" />
+                      <span>SAFE STATIC EXECUTION PIPELINE • HEURISTIC DISSECTION</span>
                     </div>
+                    <h2 className="coffer-hero-title text-2xl lg:text-3xl mb-2">
+                      Deterministic Payload <span className="coffer-hero-title-accent">Dissection</span>
+                    </h2>
+                    <p className="coffer-hero-subtitle text-sm max-w-2xl">
+                      Execute safe in-memory AST extraction, section entropy profiling, and suspicious import mapping across PE, ELF, and script payloads without host execution risk.
+                    </p>
                   </div>
 
                   <div 
-                    className={`panel dropzone ${isDragging ? "dragging" : ""} ${file ? "has-file" : ""}`}
+                    className={`coffer-card coffer-drop-target ${isDragging ? "dragging" : ""} ${file ? "has-file" : ""}`}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
                     onClick={triggerFileSelect}
+                    role="button"
+                    tabIndex={0}
+                    aria-label="File upload dropzone. Click to browse files or drag and drop here."
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        triggerFileSelect();
+                      }
+                    }}
                   >
-                    <div className="dropzone-content pointer-events-none">
-                      <Upload className="mx-auto text-muted mb-4" size={48} />
-                      {file ? (
-                        <div>
-                          <h4 className="text-gold font-semibold">{file.name}</h4>
-                          <p className="text-secondary text-xs mono mt-1">{formatFileSize(file.size)}</p>
-                          <p className="text-teal text-xs font-semibold mt-3">File ready for analysis</p>
+                    {file ? (
+                      <div className="flex flex-col items-center gap-2 pointer-events-none py-2">
+                        <div className="w-16 h-16 rounded-2xl bg-teal-500/15 border border-teal-500/30 flex items-center justify-center text-teal mb-2 shadow-lg shadow-teal-500/10">
+                          <CheckCircle2 size={32} />
                         </div>
-                      ) : (
-                        <div>
-                          <h4 className="font-semibold">Drag and drop a file here</h4>
-                          <p className="text-secondary text-sm mt-1">or click to browse your device</p>
-                          <p className="text-muted text-xs mt-3 font-mono">Supported: EXE · DLL · PDF · ZIP · 7Z · ELF · PS1 · PY · JS · SH</p>
+                        <h4 className="text-base font-bold text-primary">{file.name}</h4>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-secondary text-xs mono">{formatFileSize(file.size)}</span>
+                          <span className="w-1.5 h-1.5 rounded-full bg-teal-500" />
+                          <span className="text-teal text-xs font-semibold">Payload Ready for Analysis</span>
                         </div>
-                      )}
-                    </div>
+                        <p className="text-muted text-xs mt-2">Click to replace file or press Initialize below</p>
+                      </div>
+                    ) : (
+                      <div className="pointer-events-none flex flex-col items-center">
+                        <div className="coffer-drop-icon-box">
+                          <Upload size={30} className="text-teal" />
+                        </div>
+                        <h4 className="coffer-drop-prompt">
+                          Drag and drop binary payload here
+                        </h4>
+                        <p className="coffer-drop-hint">
+                          or click anywhere inside this box to browse local files
+                        </p>
+                        
+                        <div className="coffer-formats-row">
+                          <span className="coffer-format-pill">EXE</span>
+                          <span className="coffer-format-pill">DLL</span>
+                          <span className="coffer-format-pill">SYS</span>
+                          <span className="coffer-format-pill">PDF</span>
+                          <span className="coffer-format-pill">ELF</span>
+                          <span className="coffer-format-pill">ZIP</span>
+                          <span className="coffer-format-pill">SCR</span>
+                          <span className="coffer-format-pill">PS1</span>
+                          <span className="coffer-format-pill">PY</span>
+                          <span className="coffer-format-pill">JS</span>
+                          <span className="coffer-format-pill">SH</span>
+                        </div>
+
+                        <span className="coffer-drop-limit">
+                          Max upload limit: {workspaceSettings.max_file_size_mb} MB • Safe in-memory static AST parser
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   {file && !isScanning && (
                     <div className="text-center mt-6">
                       <button 
-                        className="btn-primary px-8 py-3" 
+                        type="button"
+                        className="coffer-btn-primary inline-flex items-center gap-2 px-8 py-3.5 text-sm font-bold shadow-lg shadow-orange-500/25 hover:shadow-orange-500/35 transition-all cursor-pointer" 
                         onClick={(e) => { e.stopPropagation(); startScan(file); }}
                       >
-                        🚀 Initialize Dissect Scan
+                        <Zap size={16} />
+                        <span>Initialize Dissect Scan</span>
+                        <ArrowRight size={16} />
                       </button>
                     </div>
                   )}
 
                   {scanError && !isScanning && (
-                    <div className="scan-error" role="alert">
+                    <div className="scan-error mt-6" role="alert">
                       <AlertTriangle size={18} />
                       <div>
                         <strong>Scan could not start</strong>
@@ -1939,42 +1989,67 @@ ${selectedReport.mitre_mappings.map(m => `- ${m.id}: ${m.technique} (${m.tactic}
                   )}
 
                   {!isScanning && (
-                    <div className="mt-8">
-                      <h4 className="mono text-xs text-gold uppercase tracking-wider mb-3">Recent scans</h4>
+                    <div className="mt-10">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-2">
+                          <Clock size={16} className="text-teal" />
+                          <h3 className="text-sm font-bold tracking-wide uppercase text-primary">Recent Dissection Feeds</h3>
+                        </div>
+                        {history.length > 0 && (
+                          <span className="text-xs text-muted font-mono">{history.length} samples in cache</span>
+                        )}
+                      </div>
+
                       {history.length > 0 ? (
-                        <div className="panel p-0 overflow-hidden">
-                          <table className="w-full border-collapse text-left text-xs">
+                        <div className="coffer-card p-0 overflow-hidden">
+                          <table className="w-full border-collapse text-left text-xs font-mono">
                             <thead>
-                              <tr className="bg-secondary border-b border-color text-muted font-semibold uppercase">
-                                <th className="p-3">Filename</th>
-                                <th className="p-3">Risk Level</th>
-                                <th className="p-3">Risk Score</th>
-                                <th className="p-3">Timestamp</th>
+                              <tr className="border-b border-white/10 text-muted uppercase text-[11px] bg-white/[0.02]">
+                                <th className="p-3.5 font-semibold">Filename</th>
+                                <th className="p-3.5 font-semibold">Risk Level</th>
+                                <th className="p-3.5 font-semibold">Risk Score</th>
+                                <th className="p-3.5 font-semibold">Timestamp</th>
                               </tr>
                             </thead>
                             <tbody>
                               {history.slice(0, 5).map((item, idx) => (
                                 <tr 
                                   key={idx} 
-                                  className="border-b border-color hover:bg-secondary cursor-pointer transition-colors"
+                                  className="border-b border-white/5 hover:bg-white/[0.04] cursor-pointer transition-colors"
                                   onClick={() => loadPastReport(item.id)}
                                 >
-                                  <td className="p-3 font-semibold text-primary">{item.filename}</td>
-                                  <td className="p-3">
-                                    <span className={`badge badge-${item.threat_level.toLowerCase()} text-xs`}>
+                                  <td className="p-3.5 font-semibold text-primary font-sans flex items-center gap-2">
+                                    <FileCode size={14} className="text-teal shrink-0" />
+                                    <span className="truncate max-w-[240px]">{item.filename}</span>
+                                  </td>
+                                  <td className="p-3.5">
+                                    <span className={`badge badge-${item.threat_level.toLowerCase()} text-[11px] font-semibold px-2.5 py-0.5 rounded-full`}>
                                       {item.threat_level}
                                     </span>
                                   </td>
-                                  <td className="p-3 mono font-semibold">{item.risk_score}/100</td>
-                                  <td className="p-3 text-muted mono">{item.timestamp}</td>
+                                  <td className="p-3.5 font-bold">
+                                    <span className={
+                                      item.risk_score >= 80 ? 'text-red-400' :
+                                      item.risk_score >= 50 ? 'text-orange-400' : 'text-teal'
+                                    }>
+                                      {item.risk_score}/100
+                                    </span>
+                                  </td>
+                                  <td className="p-3.5 text-muted">{item.timestamp}</td>
                                 </tr>
                               ))}
                             </tbody>
                           </table>
                         </div>
                       ) : (
-                        <div className="text-center py-6 border border-dashed border-color rounded-lg bg-secondary">
-                          <p className="text-secondary text-xs">No scans yet. Upload a supported file to get started.</p>
+                        <div className="coffer-card text-center py-12 px-6 flex flex-col items-center justify-center">
+                          <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-teal mb-3">
+                            <FileSearch size={22} />
+                          </div>
+                          <h4 className="text-sm font-bold text-primary mb-1">No Past Dissection Records</h4>
+                          <p className="text-xs text-secondary max-w-md mx-auto leading-relaxed">
+                            Upload an executable, archive, or script to generate real-time section entropy, cryptographic hashes, and MITRE ATT&CK tactical mappings.
+                          </p>
                         </div>
                       )}
                     </div>
